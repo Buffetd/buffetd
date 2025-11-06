@@ -10,8 +10,9 @@ import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
-import { Sources } from './collections/Sources'
 import { Users } from './collections/Users'
+import { Sources } from './collections/Sources'
+import { Caches } from './collections/Caches'
 
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
@@ -73,7 +74,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URI || '',
     },
   }),
-  collections: [Pages, Posts, Media, Categories, Users, Sources],
+  collections: [Pages, Posts, Media, Categories, Users, Sources, Caches],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins: [

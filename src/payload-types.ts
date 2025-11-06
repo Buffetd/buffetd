@@ -73,6 +73,7 @@ export interface Config {
     categories: Category;
     users: User;
     sources: Source;
+    caches: Cach;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -96,6 +97,7 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     sources: SourcesSelect<false> | SourcesSelect<true>;
+    caches: CachesSelect<false> | CachesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -815,6 +817,34 @@ export interface Source {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "caches".
+ */
+export interface Cach {
+  id: number;
+  cid?: string | null;
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  data?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1026,6 +1056,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'sources';
         value: number | Source;
+      } | null)
+    | ({
+        relationTo: 'caches';
+        value: number | Cach;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1405,6 +1439,17 @@ export interface SourcesSelect<T extends boolean = true> {
   rateLimit?: T;
   cacheTTL?: T;
   supportsPool?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "caches_select".
+ */
+export interface CachesSelect<T extends boolean = true> {
+  cid?: T;
+  metadata?: T;
+  data?: T;
   updatedAt?: T;
   createdAt?: T;
 }
