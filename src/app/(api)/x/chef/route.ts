@@ -1,19 +1,23 @@
 // An endpoint for directly running the background job runner
 import { type NextRequest, NextResponse } from 'next/server'
 
+import type { RunSummary } from '@/lib/runner'
 import { redis } from '@/lib/redis'
 import { redisQueueKey } from '@/lib/key'
 import { runOnce } from '@/lib/runner'
-import type { RunSummary } from '@/lib/runner'
+import { ok, err } from '@/lib/helper-server'
 
-type ChefResponse = { type: 'success'; data: RunSummary } | { type: 'error'; error: string }
+type ErrorResponse = { error: string }
+type ChefResponse =
+  | ({ endpoint: string; source_id: string | null; debug: Record<string, unknown> } & RunSummary)
+  | ErrorResponse
 
 export const POST = async (request: NextRequest): Promise<NextResponse<ChefResponse>> => {
   const body = await request.json()
   const { sourceId, keys } = body
 
   if (!sourceId && !keys) {
-    return NextResponse.json({ type: 'error', error: 'Missing source_id and keys' }, { status: 422 })
+    return err(422, 'Missing source_id and keys')
   }
 
   let queue_len_before: number | null = null
@@ -34,7 +38,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse<ChefRespo
   }
   console.info({ event: 'tasks-run.runOnce.summary', summary, queue_len_after_run })
 
-  const resp = { ...summary, endpoint: 'tasks-run', source_id: sourceId ?? null }
+  const resp = { ...summary, endpoint: 'tasks-run', source_id: sourceId ?? null, debug: {} }
   resp.debug = {
     queue_len_before,
     queue_len_after_enqueue,
@@ -42,5 +46,5 @@ export const POST = async (request: NextRequest): Promise<NextResponse<ChefRespo
     run_opts: runOpts,
   }
 
-  return NextResponse.json({ type: 'success', data: resp })
+  return ok(resp)
 }

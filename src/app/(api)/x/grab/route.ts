@@ -1,13 +1,16 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
+import type { CacheEntry, EnqueueResult } from '@/lib/types'
 import { getCacheEntry } from '@/lib/cache'
 import { enqueueRefresh } from '@/lib/queue'
-import type { CacheEntry, EnqueueResult } from '@/lib/types'
+import { ok, err } from '@/lib/helper-server'
+
+type ErrorResponse = { error: string }
 
 type GrabResponse =
-  | { type: 'hit'; data: CacheEntry }
-  | { type: 'enqueued'; data: EnqueueResult }
-  | { type: 'error'; error: string }
+  | { entry_status: 'hit'; data: CacheEntry }
+  | { entry_status: 'enqueued'; data: EnqueueResult }
+  | ErrorResponse
 
 export const GET = async (request: NextRequest): Promise<NextResponse<GrabResponse>> => {
   const url = request.nextUrl
@@ -15,19 +18,19 @@ export const GET = async (request: NextRequest): Promise<NextResponse<GrabRespon
   const key = url.searchParams.get('key')
 
   if (!sourceId || !key) {
-    return NextResponse.json({ type: 'error', error: 'Missing source_id or key' }, { status: 422 })
+    return err(422, 'Missing source_id or key')
   }
 
   const entry: CacheEntry | null = await getCacheEntry(sourceId, key)
 
   if (entry) {
-    return NextResponse.json({ type: 'hit', data: entry })
+    return ok({ entry_status: 'hit', data: entry })
   }
 
   const r = await enqueueRefresh({ sourceId, key })
 
-  return NextResponse.json({
-    type: 'enqueued',
+  return ok({
+    entry_status: 'enqueued',
     data: {
       enqueued: r.enqueued,
       jobId: r.jobId,

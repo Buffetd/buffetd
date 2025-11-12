@@ -1,16 +1,34 @@
-type Headers = Record<string, string>
+import { type NextRequest, NextResponse } from 'next/server'
 
-export function json(data: unknown, status = 200, headers: Headers = {}) {
-  return new Response(JSON.stringify(data, null, 2), {
-    status,
-    headers: { 'content-type': 'application/json; charset=utf-8', ...headers },
-  })
+type ErrorResponse = { error: string }
+type SuccessResponse<T> = { data: T }
+type Response<T> = ErrorResponse | SuccessResponse<T>
+
+function json<D>(data: D, status: number, statusText: string, headers: HeadersInit) {
+  return NextResponse.json(data, { status, statusText, headers })
 }
 
-export function error(status: number, message: string, headers?: Headers) {
-  return json({ error: message }, status, headers)
+function res<T>(data: T, status = 200, statusText = 'OK', headers: HeadersInit = {}) {
+  return json(data, status, statusText, headers)
 }
 
-export function methodNotAllowedFallback() {
-  return error(405, 'Method not allowed')
+// Shorthand
+export function ok<T>(data: T, headers: HeadersInit = {}) {
+  return res(data, 200, 'OK', headers)
+}
+
+export function err(status: number, message: string, headers: HeadersInit = {}): NextResponse<ErrorResponse> {
+  return res({ error: message }, status, 'error', headers)
+}
+
+export function notAllowed(methods: string[], headers: HeadersInit = {}) {
+  return err(405, 'Method not allowed', { ...headers, allow: methods.join(', ') })
+}
+
+export function notFound(headers: HeadersInit = {}) {
+  return err(404, 'Not found', headers)
+}
+
+export function internalError(headers: HeadersInit = {}) {
+  return err(500, 'Internal server error', headers)
 }
