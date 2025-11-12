@@ -788,10 +788,10 @@ export interface Form {
  */
 export interface Source {
   id: number;
-  sid?: string | null;
+  sid: string;
   name?: string | null;
   description?: string | null;
-  baseUrl?: string | null;
+  baseUrl: string;
   defaultHeaders?:
     | {
         [k: string]: unknown;
