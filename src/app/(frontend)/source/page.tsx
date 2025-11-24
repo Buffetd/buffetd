@@ -38,7 +38,7 @@ export default async function Page() {
 
           <tbody>
             {sources.docs?.map((source) => (
-              <tr key={source.sid}>
+              <tr key={source.name}>
                 <th>{source.name}</th>
                 <td>{source.description}</td>
                 <td>{source.baseUrl}</td>

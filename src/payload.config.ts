@@ -1,5 +1,6 @@
 // storage-adapter-import-placeholder
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 
 import sharp from 'sharp' // sharp-import
 import path from 'path'
@@ -13,6 +14,9 @@ import { Posts } from './collections/Posts'
 import { Users } from './collections/Users'
 import { Sources } from './collections/Sources'
 import { Caches } from './collections/Caches'
+import { CachePools } from './collections/CachePools'
+import { NormalCache } from './collections/NormalCache'
+import { PoolCache } from './collections/PoolCache'
 
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
@@ -74,7 +78,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URI || '',
     },
   }),
-  collections: [Pages, Posts, Media, Categories, Users, Sources, Caches],
+  collections: [Pages, Posts, Media, Categories, Users, Sources, Caches, CachePools, NormalCache, PoolCache],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins: [
@@ -86,7 +90,28 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
+  email: nodemailerAdapter({
+    defaultFromAddress: 'info@payloadcms.com',
+    defaultFromName: 'Payload',
+    // Nodemailer transportOptions
+    transportOptions: {
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    },
+  }),
   jobs: {
+    jobsCollectionOverrides: ({ defaultJobsCollection }) => {
+      if (!defaultJobsCollection.admin) {
+        defaultJobsCollection.admin = {}
+      }
+
+      defaultJobsCollection.admin.hidden = false
+      return defaultJobsCollection
+    },
     access: {
       run: ({ req }: { req: PayloadRequest }): boolean => {
         // Allow logged in users to execute this endpoint (default)
@@ -99,7 +124,39 @@ export default buildConfig({
         return authHeader === `Bearer ${process.env.CRON_SECRET}`
       },
     },
-    tasks: [],
+    tasks: [
+      {
+        slug: 'runRefreshJobs',
+        inputSchema: [
+          {
+            name: 'sourceId',
+            type: 'text',
+            required: true,
+          },
+          {
+            name: 'key',
+            type: 'text',
+            required: true,
+          },
+        ],
+        handler: async ({ input, req }) => {
+          await req.payload.sendEmail({
+            to: 'fake@zed.com',
+            subject: 'Welcome!',
+            text: `Hi zed, welcome to our platform! ${JSON.stringify(input)}`,
+          })
+
+          return {
+            output: { sent: true },
+          }
+        },
+      },
+    ],
+    autoRun: [
+      {
+        cron: '* * * * *',
+      },
+    ],
   },
   endpoints: [
     {

@@ -73,7 +73,7 @@ export function sanitizePoolKey(raw: string): string {
   try {
     const normalized = normalizeKeyString(String(raw ?? ''))
     // Parse with a dummy base to easily extract pathname and query
-    const u = new URL(normalized, 'http://uc.local')
+    const u = new URL(normalized, 'http://buffetd.local')
     // Remove nonce param used for dedupe
     u.searchParams.delete('i')
     const qs = u.searchParams.toString()

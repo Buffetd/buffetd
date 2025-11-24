@@ -5,48 +5,37 @@ export const metadataSchema = z.object({
   // Source Fields
   source_id: z.string(),
   key: z.string(),
-  // key_hash: z.string(),
   // HTTP Cache Fields
-  etag: z.string().optional(),
-  last_modified: z.string().optional(),
   ttl_s: z.number(),
+  etag: z.string().nullable(),
+  last_modified: z.string().nullable(),
   // HTTP Response Fields
   origin_status: z.number(),
-  content_type: z.string().optional(),
-  data_encoding: z.enum(['json', 'text', 'base64']),
+  content_type: z.string().nullable(),
+  data_encoding: z.enum(['json', 'text']),
   // Cache Fields
   cached_at: z.iso.datetime(),
-  expires_at: z.iso.datetime().nullable(),
+  expires_at: z.iso.datetime(),
 })
 
 export type Metadata = z.infer<typeof metadataSchema>
 
-export const Caches: CollectionConfig = {
-  slug: 'caches',
+export const NormalCache: CollectionConfig = {
+  slug: 'normal_cache',
   fields: [
     {
-      name: 'cid',
+      name: 'sourceId',
       type: 'text',
-    },
-    {
-      name: 'source_id',
-      type: 'text',
-      // required: true,
+      required: true,
     },
     {
       name: 'key',
       type: 'text',
-      // required: true,
+      defaultValue: '/',
     },
     {
       name: 'metadata',
       type: 'json',
-      required: true,
-      jsonSchema: {
-        uri: 'buffetd://caches/metadata.schema.json',
-        fileMatch: ['buffetd://caches/metadata.schema.json'],
-        schema: z.toJSONSchema(metadataSchema) as any,
-      },
       validate: (value) => {
         try {
           metadataSchema.parse(value)
@@ -59,7 +48,6 @@ export const Caches: CollectionConfig = {
     {
       name: 'data',
       type: 'json',
-      required: true,
     },
   ],
 }

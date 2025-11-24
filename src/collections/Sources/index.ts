@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import * as z from 'zod'
+import type { Source } from '@/payload-types'
 
 import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
@@ -16,7 +17,7 @@ const rateLimitSchema = z
     message: 'At least one rate limit must be specified',
   })
 
-type RateLimit = z.infer<typeof rateLimitSchema>
+export type RateLimit = z.infer<typeof rateLimitSchema>
 
 export const Sources: CollectionConfig = {
   slug: 'sources',
@@ -28,7 +29,7 @@ export const Sources: CollectionConfig = {
   },
   fields: [
     {
-      name: 'sid',
+      name: 'baseUrl',
       type: 'text',
       required: true,
     },
@@ -41,9 +42,9 @@ export const Sources: CollectionConfig = {
       type: 'text',
     },
     {
-      name: 'baseUrl',
+      name: 'keyTemplate',
       type: 'text',
-      required: true,
+      defaultValue: '/',
     },
     {
       name: 'defaultHeaders',
@@ -82,4 +83,21 @@ export const Sources: CollectionConfig = {
       defaultValue: false,
     },
   ],
+  hooks: {
+    beforeValidate: [
+      ({ data }: { data?: Partial<Source> }) => {
+        if (!data) return data
+
+        if (data.baseUrl && !data.name) {
+          data.name = getTopLevelDomain(data.baseUrl)
+        }
+        return data
+      },
+    ],
+  },
+}
+
+function getTopLevelDomain(url: string) {
+  const urlStruct = new URL(url)
+  return urlStruct.hostname.split('.').at(-2)
 }

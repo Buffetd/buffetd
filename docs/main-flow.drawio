@@ -1,0 +1,49 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.0.3 Chrome/140.0.7339.249 Electron/38.7.0 Safari/537.36" version="29.0.3">
+  <diagram name="Page-1" id="ucFM9AJJ5LKuH6tYO0jS">
+    <mxGraphModel dx="355" dy="286" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="8GL8VLZE3CEh1FVSrOFZ-3" value="User Fetch Item" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="525" y="82" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8GL8VLZE3CEh1FVSrOFZ-4" value="Item Cached" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="519" y="209" width="132" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="8GL8VLZE3CEh1FVSrOFZ-5" value="Return Item" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="525" y="356" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8GL8VLZE3CEh1FVSrOFZ-6" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="8GL8VLZE3CEh1FVSrOFZ-3" target="8GL8VLZE3CEh1FVSrOFZ-4">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="576" y="453" as="sourcePoint" />
+            <mxPoint x="626" y="403" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8GL8VLZE3CEh1FVSrOFZ-7" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="585" y="289" as="sourcePoint" />
+            <mxPoint x="585" y="356" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8GL8VLZE3CEh1FVSrOFZ-8" value="Yes" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="585" y="289" width="33" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="8GL8VLZE3CEh1FVSrOFZ-12" value="Create Fetch Job" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="691" y="356" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8GL8VLZE3CEh1FVSrOFZ-13" value="" style="edgeStyle=segmentEdgeStyle;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="656" y="248" as="sourcePoint" />
+            <mxPoint x="750" y="356" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="750" y="248" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8GL8VLZE3CEh1FVSrOFZ-14" value="No" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="651" y="250" width="33" height="22" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

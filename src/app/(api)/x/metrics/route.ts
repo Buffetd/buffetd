@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-import { ok } from '@/lib/helper-server'
+import { ok } from '@/lib/helpers/response'
 
 export const GET = async (request: NextRequest): Promise<NextResponse> => {
   return ok({

@@ -74,6 +74,9 @@ export interface Config {
     users: User;
     sources: Source;
     caches: Cach;
+    cache_pools: CachePool;
+    normal_cache: NormalCache;
+    pool_cache: PoolCache;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -98,6 +101,9 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     sources: SourcesSelect<false> | SourcesSelect<true>;
     caches: CachesSelect<false> | CachesSelect<true>;
+    cache_pools: CachePoolsSelect<false> | CachePoolsSelect<true>;
+    normal_cache: NormalCacheSelect<false> | NormalCacheSelect<true>;
+    pool_cache: PoolCacheSelect<false> | PoolCacheSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -126,6 +132,7 @@ export interface Config {
   };
   jobs: {
     tasks: {
+      runRefreshJobs: TaskRunRefreshJobs;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -788,10 +795,10 @@ export interface Form {
  */
 export interface Source {
   id: number;
-  sid: string;
+  baseUrl: string;
   name?: string | null;
   description?: string | null;
-  baseUrl: string;
+  keyTemplate?: string | null;
   defaultHeaders?:
     | {
         [k: string]: unknown;
@@ -822,6 +829,99 @@ export interface Source {
 export interface Cach {
   id: number;
   cid?: string | null;
+  source_id?: string | null;
+  key?: string | null;
+  metadata: {
+    source_id: string;
+    key: string;
+    etag?: string;
+    last_modified?: string;
+    ttl_s: number;
+    origin_status: number;
+    content_type?: string;
+    data_encoding: 'json' | 'text' | 'base64';
+    cached_at: string;
+    expires_at: string | null;
+  };
+  data:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cache_pools".
+ */
+export interface CachePool {
+  id: number;
+  source_id?: string | null;
+  cache_id?: string | null;
+  pool_key?: string | null;
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  data?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "normal_cache".
+ */
+export interface NormalCache {
+  id: number;
+  sourceId: string;
+  key?: string | null;
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  data?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pool_cache".
+ */
+export interface PoolCache {
+  id: number;
+  sourceId: string;
+  key?: string | null;
   metadata?:
     | {
         [k: string]: unknown;
@@ -986,7 +1086,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'schedulePublish';
+        taskSlug: 'inline' | 'runRefreshJobs' | 'schedulePublish';
         taskID: string;
         input?:
           | {
@@ -1019,7 +1119,7 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'schedulePublish') | null;
+  taskSlug?: ('inline' | 'runRefreshJobs' | 'schedulePublish') | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -1060,6 +1160,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'caches';
         value: number | Cach;
+      } | null)
+    | ({
+        relationTo: 'cache_pools';
+        value: number | CachePool;
+      } | null)
+    | ({
+        relationTo: 'normal_cache';
+        value: number | NormalCache;
+      } | null)
+    | ({
+        relationTo: 'pool_cache';
+        value: number | PoolCache;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1431,10 +1543,10 @@ export interface UsersSelect<T extends boolean = true> {
  * via the `definition` "sources_select".
  */
 export interface SourcesSelect<T extends boolean = true> {
-  sid?: T;
+  baseUrl?: T;
   name?: T;
   description?: T;
-  baseUrl?: T;
+  keyTemplate?: T;
   defaultHeaders?: T;
   rateLimit?: T;
   cacheTTL?: T;
@@ -1448,6 +1560,45 @@ export interface SourcesSelect<T extends boolean = true> {
  */
 export interface CachesSelect<T extends boolean = true> {
   cid?: T;
+  source_id?: T;
+  key?: T;
+  metadata?: T;
+  data?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cache_pools_select".
+ */
+export interface CachePoolsSelect<T extends boolean = true> {
+  source_id?: T;
+  cache_id?: T;
+  pool_key?: T;
+  metadata?: T;
+  data?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "normal_cache_select".
+ */
+export interface NormalCacheSelect<T extends boolean = true> {
+  sourceId?: T;
+  key?: T;
+  metadata?: T;
+  data?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pool_cache_select".
+ */
+export interface PoolCacheSelect<T extends boolean = true> {
+  sourceId?: T;
+  key?: T;
   metadata?: T;
   data?: T;
   updatedAt?: T;
@@ -1831,6 +1982,17 @@ export interface FooterSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskRunRefreshJobs".
+ */
+export interface TaskRunRefreshJobs {
+  input: {
+    sourceId: string;
+    key: string;
+  };
+  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
