@@ -1,3 +1,6 @@
+import { getPayload } from 'payload'
+import config from '@payload-config'
+
 import type { RefreshJob, EnqueueResult } from '@/lib/types'
 import { redis } from '@/lib/redis'
 import { keyHash, normalizeKeyString, redisKeyDedup, redisQueueKey } from '@/lib/key'
@@ -51,4 +54,21 @@ export async function enqueueRefresh(
 
   await redis.rpush(qkey, JSON.stringify(record))
   return { enqueued: true, jobId, reason: 'success' }
+}
+
+export async function enqueuePgJob(name: string, key: string) {
+  const payload = await getPayload({ config })
+
+  try {
+    const normalizedKey = normalizeKeyString(key)
+    await payload.jobs.queue({
+      task: 'jobFetchSource',
+      input: {
+        sourceName: name,
+        key: normalizedKey,
+      },
+    })
+  } catch (error) {
+    console.error('Failed to enqueue job', error)
+  }
 }

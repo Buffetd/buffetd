@@ -9,8 +9,6 @@ import { setCacheEntry } from '@/lib/cacheControl'
 
 import { fetchSourceItem } from './source'
 
-const payload = await getPayload({ config })
-
 const DEFAULT_MAX_PER_SOURCE = 20 // Max jobs per source per run
 const DEFAULT_TIME_BUDGET_MS = 5_000 // Time budget for immediate execution (ms)
 
@@ -27,7 +25,9 @@ export interface RunOptions {
   timeBudgetMs?: number
 }
 
-function getSources(sourceId: string | string[] | null) {
+async function getSources(sourceId: string | string[] | null) {
+  const payload = await getPayload({ config })
+
   if (!sourceId) return payload.find({ collection: 'sources', limit: DEFAULT_MAX_PER_SOURCE })
   if (Array.isArray(sourceId)) {
     return payload.find({ collection: 'sources', where: { name: { in: sourceId } } })

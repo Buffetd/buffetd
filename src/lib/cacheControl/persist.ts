@@ -4,9 +4,9 @@ import config from '@payload-config'
 import type { CacheEntry } from '@/lib/types'
 import { keyHash, normalizeKeyString } from '@/lib/key'
 
-const payload = await getPayload({ config })
-
 export async function dbGetCacheEntry(sourceId: string, key: string) {
+  const payload = await getPayload({ config })
+
   const normalized = normalizeKeyString(key)
   const hashKey = keyHash(normalized)
 
@@ -18,6 +18,8 @@ export async function dbGetCacheEntry(sourceId: string, key: string) {
 }
 
 export async function dbSetCacheEntry<T>(sourceId: string, key: string, entry: CacheEntry<T>) {
+  const payload = await getPayload({ config })
+
   const normalized = normalizeKeyString(key)
   const hashKey = keyHash(normalized)
   const meta = entry.metadata
@@ -33,6 +35,7 @@ export async function dbSetCacheEntry<T>(sourceId: string, key: string, entry: C
 }
 
 export async function dbDelCacheEntry(sourceId: string, key: string) {
+  const payload = await getPayload({ config })
   const normalized = normalizeKeyString(key)
   const hashKey = keyHash(normalized)
   const res = await payload.delete({
@@ -50,6 +53,8 @@ export type PoolItem = {
   data: Record<string, unknown>
 }
 export async function dbPoolAddItem(item: PoolItem) {
+  const payload = await getPayload({ config })
+
   const { sourceId, cacheId, poolKey, metadata, data } = item
   const normalizedKey = normalizeKeyString(poolKey)
   const hashKey = keyHash(normalizedKey)
@@ -61,6 +66,8 @@ export async function dbPoolAddItem(item: PoolItem) {
 }
 
 export async function dbPoolGetItem(sourceId: string, cacheId: string, poolKey: string) {
+  const payload = await getPayload({ config })
+
   const normalized = normalizeKeyString(poolKey)
   const hashKey = keyHash(normalized)
 
@@ -72,6 +79,8 @@ export async function dbPoolGetItem(sourceId: string, cacheId: string, poolKey: 
 }
 
 export async function dbPoolGetRandom(sourceId: string, cacheId: string) {
+  const payload = await getPayload({ config })
+
   const res = await payload.find({
     collection: 'cache_pools',
     where: { source_id: { equals: sourceId }, cache_id: { equals: cacheId } },

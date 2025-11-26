@@ -24,6 +24,8 @@ import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 
+import { executeJob } from '@/lib/jobControl/executeJob'
+
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
@@ -125,6 +127,19 @@ export default buildConfig({
       },
     },
     tasks: [
+      {
+        slug: 'jobFetchSource',
+        inputSchema: [
+          { name: 'sourceName', type: 'text', required: true },
+          { name: 'key', type: 'text', required: true },
+        ],
+        handler: async ({ input, req }) => {
+          await executeJob(input.sourceName)
+          return {
+            output: { executed: true },
+          }
+        },
+      },
       {
         slug: 'runRefreshJobs',
         inputSchema: [

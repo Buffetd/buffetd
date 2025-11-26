@@ -132,6 +132,7 @@ export interface Config {
   };
   jobs: {
     tasks: {
+      jobFetchSource: TaskJobFetchSource;
       runRefreshJobs: TaskRunRefreshJobs;
       schedulePublish: TaskSchedulePublish;
       inline: {
@@ -1086,7 +1087,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'runRefreshJobs' | 'schedulePublish';
+        taskSlug: 'inline' | 'jobFetchSource' | 'runRefreshJobs' | 'schedulePublish';
         taskID: string;
         input?:
           | {
@@ -1119,7 +1120,7 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'runRefreshJobs' | 'schedulePublish') | null;
+  taskSlug?: ('inline' | 'jobFetchSource' | 'runRefreshJobs' | 'schedulePublish') | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -1982,6 +1983,17 @@ export interface FooterSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskJobFetchSource".
+ */
+export interface TaskJobFetchSource {
+  input: {
+    sourceName: string;
+    key: string;
+  };
+  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

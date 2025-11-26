@@ -1,5 +1,7 @@
 import { Metadata } from '@/collections/Caches'
 
+export type SourceMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
+
 /* CacheEntry
  */
 
@@ -42,7 +44,7 @@ export interface RefreshJob {
   priority: JobPriority
   attempts: number // number of attempts tried (for consumer retry limit control)
   enqueuedAt: string // ISO time
-  sourceMethod: 'GET' | 'POST'
+  sourceMethod: SourceMethod
 }
 
 export interface EnqueueResult {

@@ -1,10 +1,15 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
+import { withTimeout } from '@/lib/utils'
+import { ok, err } from '@/lib/helpers/response'
+import { autoCreateSource } from '@/lib/jobControl/source'
+import { enqueueRefresh } from '@/lib/jobControl/queue'
+
+export type SourceMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
 
 type BypassRequestInit = Omit<RequestInit, 'method' | 'body' | 'headers'>
 
-async function handler(request: NextRequest, method: Method): Promise<Response> {
+async function handler(request: NextRequest, method: SourceMethod): Promise<Response> {
   const search = request.nextUrl.searchParams
   const targetUrl = search.get('url')
   const clientReqBody = method === 'POST' ? await request.json() : undefined
@@ -54,31 +59,63 @@ async function handler(request: NextRequest, method: Method): Promise<Response> 
     return NextResponse.json({ message: 'Missing target URL' }, { status: 400 })
   }
 
-  const response = await fetch(targetUrl, {
-    method,
-    body: clientReqBody,
-    headers: forwardedHeaders,
-    ...bypassRequestInit,
-  })
-
-  const targetResHeaders = response.headers
-
-  const resContentType = targetResHeaders.get('content-type')
-  const resType = resContentType?.includes('json') ? 'json' : 'text'
-
-  const message = {
-    source: await response[resType](),
-    meta: {
+  const fetchSource = async () => {
+    const response = await fetch(targetUrl, {
       method,
-      targetUrl,
-      clientReqHeaders: request.headers,
-      clientReqBody,
-      targetResHeaders,
-      targetResContentType: resContentType,
-    },
+      body: clientReqBody,
+      headers: forwardedHeaders,
+      ...bypassRequestInit,
+    })
+
+    const targetResHeaders = response.headers
+
+    const resContentType = targetResHeaders.get('content-type')
+    const resType = resContentType?.includes('json') ? 'json' : 'text'
+
+    const message = {
+      source: await response[resType](),
+      meta: {
+        method,
+        targetUrl,
+        clientReqHeaders: request.headers,
+        clientReqBody,
+        targetResHeaders,
+        targetResContentType: resContentType,
+      },
+    }
+
+    return message
   }
 
-  return NextResponse.json({ message }, { headers: { 'X-Buffetd': `Proxy ${method} ${targetUrl}` } })
+  const src = await autoCreateSource(targetUrl)
+
+  try {
+    const message = await withTimeout(fetchSource, 5000)
+    return NextResponse.json({ message }, { headers: { 'X-Buffetd': `Proxy ${method} ${targetUrl}` } })
+  } catch (error) {
+    console.error({ event: 'proxy.fetch_error', targetUrl, err: String(error) })
+    if (error instanceof Error && error.message === 'TIMEOUT') {
+      const r = await enqueueRefresh({
+        sourceId: `${src.id}`,
+        key: '',
+        priority: 'normal',
+        attempts: 0,
+        sourceMethod: method,
+      })
+
+      return ok({
+        entry_status: 'enqueued',
+        data: {
+          enqueued: r.enqueued,
+          jobId: r.jobId,
+          reason: r.reason,
+          sourceId: src.id,
+          key: '',
+        },
+      })
+    }
+    return err(500, 'Internal Server Error')
+  }
 }
 
 export const GET = async (request: NextRequest): Promise<Response> => {
