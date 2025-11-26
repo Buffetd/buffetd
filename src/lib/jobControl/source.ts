@@ -1,8 +1,13 @@
+import { getPayload } from 'payload'
+import config from '@payload-config'
+
 import { Source } from '@/payload-types'
 
 import type { CacheDataEncoding, Metadata, CacheEntry, RefreshJob } from '../types'
 import { redis } from '@/lib/redis'
 import { redisQueueKey, sanitizePoolKey, keyHash } from '@/lib/key'
+
+const payload = await getPayload({ config })
 
 const DEFAULT_MAX_PER_SOURCE = 20 // Max jobs per source per run
 const DEFAULT_TIME_BUDGET_MS = 5_000 // Time budget for immediate execution (ms)
@@ -172,4 +177,31 @@ export async function fetchSourceItem(
     data,
     metadata,
   }
+}
+
+export async function autoCreateSource(url: string) {
+  const { origin } = URL.parse(url) ?? {}
+
+  if (!origin) throw new Error('Invalid host name')
+
+  // find host in sources collection
+  const src = await payload.find({
+    collection: 'sources',
+    where: { baseUrl: { equals: origin } },
+  })
+
+  if (src.docs.length > 0) return src.docs[0]
+
+  // create source
+  const newSrc = await payload.create({
+    collection: 'sources',
+    data: {
+      baseUrl: origin,
+      rateLimit: {
+        requestPerMinute: 6,
+      },
+    },
+  })
+
+  return newSrc
 }

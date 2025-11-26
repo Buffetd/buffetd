@@ -6,6 +6,7 @@ import type { CacheEntry, EnqueueResult } from '@/lib/types'
 import { getCacheEntry } from '@/lib/cacheControl'
 import { enqueueRefresh } from '@/lib/jobControl/queue'
 import { ok, err } from '@/lib/helpers/response'
+import { withTimeout } from '@/lib/utils'
 
 const payload = await getPayload({ config })
 
@@ -49,24 +50,32 @@ async function handler(request: NextRequest, method: 'GET' | 'POST'): Promise<Ne
     return ok({ entry_status: 'hit', data: entry })
   }
 
-  const r = await enqueueRefresh({
-    sourceId: source_id,
-    key: cacheKey,
-    priority: 'normal',
-    attempts: 0,
-    sourceMethod: method,
-  })
+  try {
+    // await withTimeout(() => fetch({ sourceId: source_id, key: cacheKey, priority: 'normal', attempts: 0, sourceMethod: method }), 5000)
+    throw new Error('TIMEOUT')
+  } catch (error) {
+    if (error instanceof Error && error.message === 'TIMEOUT') {
+      const r = await enqueueRefresh({
+        sourceId: source_id,
+        key: cacheKey,
+        priority: 'normal',
+        attempts: 0,
+        sourceMethod: method,
+      })
 
-  return ok({
-    entry_status: 'enqueued',
-    data: {
-      enqueued: r.enqueued,
-      jobId: r.jobId,
-      reason: r.reason,
-      sourceId: source_id,
-      key,
-    },
-  })
+      return ok({
+        entry_status: 'enqueued',
+        data: {
+          enqueued: r.enqueued,
+          jobId: r.jobId,
+          reason: r.reason,
+          sourceId: source_id,
+          key,
+        },
+      })
+    }
+    return err(500, 'Internal Server Error')
+  }
 }
 
 function fromEntriesSmart<T>(entries: Iterable<[string, T]>) {

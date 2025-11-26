@@ -30,9 +30,9 @@ export interface RunOptions {
 function getSources(sourceId: string | string[] | null) {
   if (!sourceId) return payload.find({ collection: 'sources', limit: DEFAULT_MAX_PER_SOURCE })
   if (Array.isArray(sourceId)) {
-    return payload.find({ collection: 'sources', where: { sid: { in: sourceId } } })
+    return payload.find({ collection: 'sources', where: { name: { in: sourceId } } })
   }
-  return payload.find({ collection: 'sources', where: { sid: { equals: sourceId } } })
+  return payload.find({ collection: 'sources', where: { name: { equals: sourceId } } })
 }
 
 export async function runOnce(opts: RunOptions): Promise<RunSummary> {
@@ -47,11 +47,11 @@ export async function runOnce(opts: RunOptions): Promise<RunSummary> {
   console.info({ event: 'runner.sources', ids: sources.docs.map((s) => s.id) })
 
   for (const src of sources.docs) {
-    perSource[src.sid] = { dequeued: 0, updated: 0, cacheHit: 0, errors: 0 }
+    perSource[src.name!] = { dequeued: 0, updated: 0, cacheHit: 0, errors: 0 }
 
-    const queueKey = redisQueueKey(src.sid)
+    const queueKey = redisQueueKey(src.name!)
     const queueLen = await redis.llen(queueKey)
-    console.info({ event: 'runner.queue_init', source_id: src.sid, queue_len: queueLen })
+    console.info({ event: 'runner.queue_init', source_id: src.name!, queue_len: queueLen })
 
     for (let i = 0; i < maxPerSource; i++) {
       if (Date.now() - started > timeBudgetMs) break // Guardrail for time budget
@@ -61,10 +61,10 @@ export async function runOnce(opts: RunOptions): Promise<RunSummary> {
       console.log(raw)
       if (!raw) {
         console.log(raw)
-        console.info({ event: 'runner.queue_empty', source_id: src.sid, i, dequeued: perSource[src.sid!].dequeued })
+        console.info({ event: 'runner.queue_empty', source_id: src.name!, i, dequeued: perSource[src.name!].dequeued })
         break // Queue is empty
       }
-      perSource[src.sid!].dequeued++
+      perSource[src.name!].dequeued++
 
       let job: RefreshJob | null = null
       try {
@@ -89,7 +89,7 @@ export async function runOnce(opts: RunOptions): Promise<RunSummary> {
       try {
         const ttl_s = Number(src.cacheTTL ?? 600)
         const initMetadata: Partial<Metadata> = {
-          source_id: src.sid,
+          source_id: `${src.id}`,
           key: job.key,
           // stale: false, // Will be recomputed by setCacheEntry,
           ttl_s,
@@ -111,9 +111,9 @@ export async function runOnce(opts: RunOptions): Promise<RunSummary> {
           const poolWithQS = after.length > 0 ? after : '/'
           const pool_key = sanitizePoolKey(poolWithQS)
 
-          result = await fetchSourceItem(job, src, pool_key, perSource[src.sid])
+          result = await fetchSourceItem(job, src, pool_key, perSource[src.name!])
         } else {
-          result = await fetchSourceItem(job, src, job.key, perSource[src.sid])
+          result = await fetchSourceItem(job, src, job.key, perSource[src.name!])
         }
 
         if (!result) continue
@@ -126,10 +126,10 @@ export async function runOnce(opts: RunOptions): Promise<RunSummary> {
           } as Metadata,
         }
 
-        await setCacheEntry(src.sid, job.key, entry, { ttlSec: ttl_s })
+        await setCacheEntry(src.name!, job.key, entry, { ttlSec: ttl_s })
       } catch (error) {
-        perSource[src.sid].errors++
-        console.error({ event: 'runner.refresh_error', source_id: src.sid, key: job?.key, err: String(error) })
+        perSource[src.name!].errors++
+        console.error({ event: 'runner.refresh_error', source_id: src.name!, key: job?.key, err: String(error) })
       }
     }
   }

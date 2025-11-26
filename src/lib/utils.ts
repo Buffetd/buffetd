@@ -13,3 +13,8 @@ export function isStale(meta: Pick<Metadata, 'expires_at'>): boolean {
   if (!meta.expires_at) return false
   return Date.now() >= Date.parse(meta.expires_at)
 }
+
+export function withTimeout<T>(fn: () => Promise<T>, ms: number): Promise<T> {
+  const timeout = new Promise<T>((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))
+  return Promise.race<T>([fn(), timeout])
+}

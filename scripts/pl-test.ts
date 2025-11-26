@@ -1,6 +1,8 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
+import { autoCreateSource } from '@/lib/jobControl/source'
+
 // const metadataSchema = z.object({
 //   // Source Fields
 //   source_id: z.string(),
@@ -84,15 +86,21 @@ async function testPoolCache() {
   console.log(res)
 }
 
-async function main() {
-  // await testPoolCache()
-
+async function sendEmail() {
   const payload = await getPayload({ config })
   const email = await payload.sendEmail({
     to: 'test@example.com',
     subject: 'This is a test email',
     text: 'This is my message body',
   })
+}
+
+async function main() {
+  // await testPoolCache()
+  // await sendEmail()
+
+  const src = await autoCreateSource('https://api.github.com')
+  console.log(src)
 }
 
 await main()
