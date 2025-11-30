@@ -6,10 +6,11 @@ const payload = await getPayload({ config })
 
 export const GET = async (request: NextRequest): Promise<NextResponse> => {
   await payload.jobs.queue({
-    task: 'runRefreshJobs',
+    task: 'tFetchSourceEntry',
     input: {
-      sourceId: 'hitokoto',
+      sourceName: 'hitokoto',
       key: '/?c=b',
+      method: 'GET',
     },
   })
   return NextResponse.json({ message: 'Hello, this is the custom API root endpoint route' })
