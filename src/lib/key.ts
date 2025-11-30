@@ -12,7 +12,7 @@ export function templateKey(template: string, params: Record<string, any>): stri
   return normalizeKeyString(s)
 }
 
-export function normalizeKeyString(key: string): string {
+export function normalizeKeyString(key: string) {
   if (!key) return '/'
   let s = String(key).trim()
   // If the key is URL-encoded, try decoding once; ignore failures
@@ -28,42 +28,56 @@ export function normalizeKeyString(key: string): string {
   return s
 }
 
-export function keyHash(key: string): string {
+export function keyHash(key: string) {
   return createHash('sha1').update(key).digest('hex')
 }
 
-export function redisKeyCache(source_id: string, key_hash: string): string {
-  return `buffetd:cache:${source_id}:${key_hash}`
+/**
+ * Redis Key Generator Start
+ * ==================
+ */
+
+export function redisKeyCache(name: string, hash: string) {
+  return `buffetd:cache:${name}:${hash}`
 }
 
-export function redisKeyDedup(source_id: string, key_hash: string): string {
-  return `buffetd:dedup:${source_id}:${key_hash}`
+export function redisKeyDedup(name: string, hash: string) {
+  return `buffetd:dedup:${name}:${hash}`
 }
 
-export function redisKeyIdemp(hash: string): string {
+export function redisKeyIdemp(hash: string) {
   return `buffetd:idemp:${hash}`
 }
 
-export function redisKeyHot(source_id: string, key_hash: string): string {
-  return `buffetd:hot:${source_id}:${key_hash}`
+export function redisKeyHot(name: string, hash: string) {
+  return `buffetd:hot:${name}:${hash}`
 }
 
-export function redisKeyHotCooldown(source_id: string, key_hash: string): string {
-  return `buffetd:hotcd:${source_id}:${key_hash}`
+export function redisKeyHotCooldown(name: string, hash: string) {
+  return `buffetd:hotcd:${name}:${hash}`
 }
 
-export function redisQueueKey(source_id: string): string {
-  return `buffetd:q:${source_id}`
+export function redisQueueKey(name: string) {
+  return `buffetd:queue:${name}`
+}
+
+export function redisTaskKey(name: string) {
+  return `buffetd:task:${name}`
 }
 
 // Pool keys for list/pool support
-export function redisKeyPoolIds(source_id: string, key_hash: string): string {
+export function redisKeyPoolIds(source_id: string, key_hash: string) {
   return `buffetd:pool:ids:${source_id}:${key_hash}`
 }
 
-export function redisKeyPoolItem(source_id: string, key_hash: string, item_id: string): string {
+export function redisKeyPoolItem(source_id: string, key_hash: string, item_id: string) {
   return `buffetd:pool:item:${source_id}:${key_hash}:${item_id}`
 }
+
+/**
+ * Redis Key Generator End
+ * ==================
+ */
 
 // For pool mode only:
 // - Decode and normalize path

@@ -1,6 +1,8 @@
 import { Metadata } from '@/collections/Caches'
 
 export type SourceMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
+export type ValidMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
+// CONNECT and TRACE are not supported
 
 /* CacheEntry
  */
@@ -59,3 +61,25 @@ export interface RateLimitDecision {
   remaining: number
   resetAt: string // ISO time
 }
+
+/**
+ * Fetch Source Entry Task
+ */
+
+export type TaskPriority = 'low' | 'normal' | 'high'
+
+export interface GeneralTask<P = unknown> {
+  taskId: string
+  priority: TaskPriority
+  attempts: number
+  createdAt: string // ISO time
+  params: P
+}
+
+export type AnyTask = GeneralTask<any>
+
+export type FetchSourceEntryParam = {
+  sourceName: string
+  key: string
+}
+export type FetchSourceEntryTask = GeneralTask<FetchSourceEntryParam>

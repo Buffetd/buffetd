@@ -1,23 +1,64 @@
-function sourceFetch(url: string) {
-  const targetUrl = new URL(url)
-  const targetUrlParams = {}
-  const targetHeaders = {}
-  const targetRequestMethod = 'GET'
-  const targetRequestBody = null
+import ky from 'ky'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 
-  const fullUrl = targetUrl.toString()
-  const requestInit: RequestInit = {
-    method: targetRequestMethod,
-    headers: targetHeaders,
-    body: targetRequestBody,
+import { withTimeout, sleep } from '@/lib/utils'
+
+interface SourceFetchOptions {
+  attempts?: number
+  baseDelayMs?: number
+  timeoutMs?: number
+}
+
+export function fetchTargetDirect(url: string, init?: RequestInit, options?: SourceFetchOptions) {
+  return fetchTargetWithParsed(url, init, options)
+}
+
+export async function fetchTargetWithSource(
+  name: string,
+  key: string,
+  init?: RequestInit,
+  options?: SourceFetchOptions,
+) {
+  const payload = await getPayload({ config })
+
+  const sources = await payload.find({ collection: 'sources', where: { name: { equals: name } } })
+
+  if (sources.docs.length === 0) {
+    throw new Error(`Source ${name} not found`)
   }
 
-  const createRequest = () => {
-    return new Request(fullUrl, requestInit)
+  const source = sources.docs[0]
+
+  const url = source.baseUrl + key
+
+  return fetchTargetWithParsed(url, init, options)
+}
+
+export async function fetchTargetWithParsed(url: string, init?: RequestInit, options?: SourceFetchOptions) {
+  const response = await fetchTarget(url, init, options)
+
+  const targetResHeaders = response.headers
+  const resContentType = targetResHeaders.get('content-type')
+  const resType = resContentType?.includes('json') ? 'json' : 'text'
+
+  const message = {
+    source: await response[resType](),
+    meta: {
+      method: init?.method,
+      targetUrl: url,
+      clientReqHeaders: init?.headers,
+      clientReqBody: init?.body,
+      targetResHeaders,
+      targetResContentType: resContentType,
+    },
   }
 
-  const request = createRequest()
-  return fetcher(request)
+  return message
+}
+
+export function fetchTarget(url: string, init?: RequestInit, options?: SourceFetchOptions) {
+  return fetcher(new Request(url, init))
 }
 
 function fetcher(request: Request) {

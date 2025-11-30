@@ -1,0 +1,54 @@
+import type { TaskConfig, TypedJobs, TaskHandler, Field } from 'payload'
+
+// import { executeJob } from '@/lib/jobControl/executeJob'
+
+export type TaskKeys = keyof TypedJobs['tasks']
+
+export function createTask<N extends TaskKeys>(name: N, input: string[], handler: TaskHandler<N>) {
+  const inputSchema = input.map((i) => {
+    const [name, type, required] = i.split('|')
+    return { name, type, required: required === 'required' } as Field
+  })
+
+  return {
+    slug: name,
+    inputSchema,
+    handler,
+  }
+}
+
+export const createFetchSourceEntryTask = (): TaskConfig<'tFetchSourceEntry'> => {
+  const fields = ['sourceName|text|required', 'key|text|required', 'method|text|required']
+
+  return createTask('tFetchSourceEntry', fields, async ({ input, req }) => {
+    return {
+      output: { executed: true },
+    }
+  })
+}
+
+export const createExecuteJobTask = (): TaskConfig<'tExecuteJob'> => {
+  const fields = ['sourceName|text|required', 'key|text|required']
+
+  return createTask('tExecuteJob', fields, async ({ input, req }) => {
+    return {
+      output: { executed: true },
+    }
+  })
+}
+
+export const createSendEmailTask = (): TaskConfig<'tSendEmail'> => {
+  const fields = ['to|text|required', 'subject|text|required', 'text|text|required']
+
+  return createTask('tSendEmail', fields, async ({ input, req }) => {
+    await req.payload.sendEmail({
+      to: input.to,
+      subject: input.subject,
+      text: input.text,
+    })
+
+    return {
+      output: { executed: true },
+    }
+  })
+}

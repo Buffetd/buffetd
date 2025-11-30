@@ -12,6 +12,15 @@ function res<T>(data: T, status = 200, statusText = 'OK', headers: HeadersInit =
   return json(data, status, statusText, headers)
 }
 
+export function errorCheck(errorPairs: [boolean, number, string][]) {
+  for (const [cond, status, message] of errorPairs) {
+    if (cond) {
+      return [true, err(status, message)]
+    }
+  }
+  return [false, null]
+}
+
 // Shorthand
 export function ok<T>(data: T, headers: HeadersInit = {}) {
   return res(data, 200, 'OK', headers)

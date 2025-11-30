@@ -132,8 +132,9 @@ export interface Config {
   };
   jobs: {
     tasks: {
-      jobFetchSource: TaskJobFetchSource;
-      runRefreshJobs: TaskRunRefreshJobs;
+      tExecuteJob: TaskTExecuteJob;
+      tFetchSourceEntry: TaskTFetchSourceEntry;
+      tSendEmail: TaskTSendEmail;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -1087,7 +1088,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'jobFetchSource' | 'runRefreshJobs' | 'schedulePublish';
+        taskSlug: 'inline' | 'tExecuteJob' | 'tFetchSourceEntry' | 'tSendEmail' | 'schedulePublish';
         taskID: string;
         input?:
           | {
@@ -1120,7 +1121,7 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'jobFetchSource' | 'runRefreshJobs' | 'schedulePublish') | null;
+  taskSlug?: ('inline' | 'tExecuteJob' | 'tFetchSourceEntry' | 'tSendEmail' | 'schedulePublish') | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -1986,9 +1987,9 @@ export interface FooterSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskJobFetchSource".
+ * via the `definition` "TaskTExecuteJob".
  */
-export interface TaskJobFetchSource {
+export interface TaskTExecuteJob {
   input: {
     sourceName: string;
     key: string;
@@ -1997,12 +1998,25 @@ export interface TaskJobFetchSource {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskRunRefreshJobs".
+ * via the `definition` "TaskTFetchSourceEntry".
  */
-export interface TaskRunRefreshJobs {
+export interface TaskTFetchSourceEntry {
   input: {
-    sourceId: string;
+    sourceName: string;
     key: string;
+    method: string;
+  };
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskTSendEmail".
+ */
+export interface TaskTSendEmail {
+  input: {
+    to: string;
+    subject: string;
+    text: string;
   };
   output?: unknown;
 }

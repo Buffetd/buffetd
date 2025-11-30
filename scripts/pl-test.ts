@@ -3,24 +3,6 @@ import config from '@payload-config'
 
 import { autoCreateSource } from '@/lib/jobControl/source'
 
-// const metadataSchema = z.object({
-//   // Source Fields
-//   source_id: z.string(),
-//   key: z.string(),
-//   key_hash: z.string(),
-//   // HTTP Cache Fields
-//   etag: z.string().nullable(),
-//   last_modified: z.string().nullable(),
-//   ttl_s: z.number(),
-//   // HTTP Response Fields
-//   origin_status: z.number(),
-//   content_type: z.string().nullable(),
-//   data_encoding: z.enum(['json', 'text']),
-//   // Cache Fields
-//   cached_at: z.date(),
-//   expires_at: z.date(),
-// })
-
 async function testCache() {
   const payload = await getPayload({ config })
 

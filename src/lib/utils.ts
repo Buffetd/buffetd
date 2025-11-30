@@ -18,3 +18,7 @@ export function withTimeout<T>(fn: () => Promise<T>, ms: number): Promise<T> {
   const timeout = new Promise<T>((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))
   return Promise.race<T>([fn(), timeout])
 }
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}

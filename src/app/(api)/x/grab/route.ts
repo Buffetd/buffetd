@@ -2,11 +2,13 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-import type { CacheEntry, EnqueueResult } from '@/lib/types'
+import type { CacheEntry, EnqueueResult, ValidMethod } from '@/lib/types'
 import { getCacheEntry } from '@/lib/cacheControl'
 import { enqueueRefresh } from '@/lib/jobControl/queue'
+import { enqueueFetchSourceEntryTask } from '@/lib/jobControl/enqueue'
 import { ok, err } from '@/lib/helpers/response'
 import { withTimeout } from '@/lib/utils'
+import { fetchTargetDirect } from '@/lib/jobControl/sourceFetch'
 
 const payload = await getPayload({ config })
 
@@ -17,65 +19,93 @@ type GrabResponse =
   | { entry_status: 'enqueued'; data: EnqueueResult }
   | ErrorResponse
 
-export const GET = async (request: NextRequest): Promise<NextResponse<GrabResponse>> => {
-  return handler(request, 'GET')
-}
+async function handler(request: NextRequest, method: ValidMethod): Promise<Response> {
+  const args = await extractArguments(request, ['sourceName', 'key'] as const, method)
+  const { sourceName, key } = args
+  if (!sourceName || !key) return err(422, 'Missing source name or key')
 
-export const POST = async (request: NextRequest): Promise<NextResponse<GrabResponse>> => {
-  return handler(request, 'POST')
-}
-
-async function handler(request: NextRequest, method: 'GET' | 'POST'): Promise<NextResponse<GrabResponse>> {
-  const args = await extractArguments(request, ['source_id', 'key'] as const)
-  const { source_id, key } = args
-  if (!source_id || !key) {
-    return err(422, 'Missing source_id or key')
-  }
-
-  const sources = await payload.find({ collection: 'sources', where: { name: { equals: source_id } } })
-  if (sources.docs.length === 0) {
-    return err(404, 'Source not found')
-  }
+  const sources = await payload.find({ collection: 'sources', where: { name: { equals: sourceName } } })
+  if (sources.docs.length === 0) return err(404, 'Source not found')
 
   const src = sources.docs[0]
-  console.info({ event: 'grab.source', source_id, key, src })
-  let cacheKey = key
-  if (src.supportsPool) {
-    cacheKey = `/pool:${key}`
-  }
-
-  const entry: CacheEntry | null = await getCacheEntry(source_id, cacheKey)
+  const cacheKey = src.supportsPool ? `/pool:${key}` : key
+  const entry: CacheEntry | null = await getCacheEntry(sourceName, cacheKey)
 
   if (entry) {
+    console.info({ event: 'grab.hit', sourceName, cacheKey })
     return ok({ entry_status: 'hit', data: entry })
   }
 
   try {
-    // await withTimeout(() => fetch({ sourceId: source_id, key: cacheKey, priority: 'normal', attempts: 0, sourceMethod: method }), 5000)
     throw new Error('TIMEOUT')
+    const url = src.baseUrl + key
+    console.info({ event: 'grab.fetch', sourceName, cacheKey, url })
+    const message = await withTimeout(
+      () =>
+        fetchTargetDirect(url, {
+          method,
+          headers: {},
+          body: undefined,
+        }),
+      1000,
+    )
+    return ok({ entry_status: 'source', message })
   } catch (error) {
     if (error instanceof Error && error.message === 'TIMEOUT') {
-      const r = await enqueueRefresh({
-        sourceId: source_id,
-        key: cacheKey,
-        priority: 'normal',
-        attempts: 0,
-        sourceMethod: method,
-      })
+      const result = await enqueueFetchSourceEntryTask(sourceName, cacheKey, method)
+
+      console.info({ event: 'grab.enqueued', sourceName, cacheKey, result })
+
+      // const r = await enqueueRefresh({
+      //   sourceId: sourceName,
+      //   key: cacheKey,
+      //   priority: 'normal',
+      //   attempts: 0,
+      //   sourceMethod: method,
+      // })
 
       return ok({
         entry_status: 'enqueued',
         data: {
-          enqueued: r.enqueued,
-          jobId: r.jobId,
-          reason: r.reason,
-          sourceId: source_id,
+          enqueued: true,
+          jobId: result?.id,
+          reason: 'success',
+          sourceId: sourceName,
           key,
         },
       })
     }
+    console.error({ event: 'grab.error', sourceName, cacheKey, err: String(error) })
     return err(500, 'Internal Server Error')
   }
+}
+
+export const GET = async (request: NextRequest): Promise<Response> => {
+  return handler(request, 'GET')
+}
+
+export const POST = async (request: NextRequest): Promise<Response> => {
+  return handler(request, 'POST')
+}
+
+export const PUT = async (request: NextRequest): Promise<Response> => {
+  return handler(request, 'PUT')
+}
+
+export const PATCH = async (request: NextRequest): Promise<Response> => {
+  return handler(request, 'PATCH')
+}
+
+export const DELETE = async (request: NextRequest): Promise<Response> => {
+  return handler(request, 'DELETE')
+}
+
+export const HEAD = async (request: NextRequest): Promise<Response> => {
+  return handler(request, 'HEAD')
+}
+
+export const OPTIONS = async (request: NextRequest): Promise<Response> => {
+  return handler(request, 'OPTIONS')
 }
 
 function fromEntriesSmart<T>(entries: Iterable<[string, T]>) {
@@ -94,13 +124,16 @@ function fromEntriesSmart<T>(entries: Iterable<[string, T]>) {
 async function extractArguments<const TFields extends readonly string[]>(
   request: NextRequest,
   fields: TFields,
+  method: ValidMethod,
 ): Promise<{ [K in TFields[number]]?: string }> {
   const url = request.nextUrl
   const searchEntries = url.searchParams.entries()
   const argFromQueries = fromEntriesSmart(searchEntries)
   let body = {} as { [K in TFields[number]]?: string }
   try {
-    body = await request.json()
+    if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
+      body = await request.json()
+    }
   } catch (error) {
     console.error('Failed to parse JSON body:', error)
   }

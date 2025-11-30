@@ -24,7 +24,7 @@ import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 
-import { executeJob } from '@/lib/jobControl/executeJob'
+import { createExecuteJobTask, createFetchSourceEntryTask, createSendEmailTask } from '@/tasks/fetchSourceEntry'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -126,47 +126,7 @@ export default buildConfig({
         return authHeader === `Bearer ${process.env.CRON_SECRET}`
       },
     },
-    tasks: [
-      {
-        slug: 'jobFetchSource',
-        inputSchema: [
-          { name: 'sourceName', type: 'text', required: true },
-          { name: 'key', type: 'text', required: true },
-        ],
-        handler: async ({ input, req }) => {
-          await executeJob(input.sourceName)
-          return {
-            output: { executed: true },
-          }
-        },
-      },
-      {
-        slug: 'runRefreshJobs',
-        inputSchema: [
-          {
-            name: 'sourceId',
-            type: 'text',
-            required: true,
-          },
-          {
-            name: 'key',
-            type: 'text',
-            required: true,
-          },
-        ],
-        handler: async ({ input, req }) => {
-          await req.payload.sendEmail({
-            to: 'fake@zed.com',
-            subject: 'Welcome!',
-            text: `Hi zed, welcome to our platform! ${JSON.stringify(input)}`,
-          })
-
-          return {
-            output: { sent: true },
-          }
-        },
-      },
-    ],
+    tasks: [createExecuteJobTask(), createFetchSourceEntryTask(), createSendEmailTask()],
     autoRun: [
       {
         cron: '* * * * *',

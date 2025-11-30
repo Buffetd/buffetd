@@ -1,20 +1,25 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
+import type { CacheEntry, EnqueueResult, ValidMethod } from '@/lib/types'
 import { withTimeout } from '@/lib/utils'
 import { ok, err } from '@/lib/helpers/response'
-import { autoCreateSource } from '@/lib/jobControl/source'
 import { enqueueRefresh } from '@/lib/jobControl/queue'
-
-export type SourceMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
+import { enqueueFetchSourceEntryTask } from '@/lib/jobControl/enqueue'
+import { autoCreateSource } from '@/lib/jobControl/source'
+import { fetchTargetDirect } from '@/lib/jobControl/sourceFetch'
 
 type BypassRequestInit = Omit<RequestInit, 'method' | 'body' | 'headers'>
 
-async function handler(request: NextRequest, method: SourceMethod): Promise<Response> {
+async function handler(request: NextRequest, method: ValidMethod): Promise<Response> {
   const search = request.nextUrl.searchParams
   const targetUrl = search.get('url')
+
+  if (!targetUrl) {
+    return NextResponse.json({ message: 'Missing target URL' }, { status: 400 })
+  }
+
   const clientReqBody = method === 'POST' ? await request.json() : undefined
   const clientReqHeaders = request.headers
-
   const forwardedHeaders: Record<string, string> = {}
   const bypassRequestInit: BypassRequestInit = {}
   for (const [key, value] of clientReqHeaders) {
@@ -55,61 +60,42 @@ async function handler(request: NextRequest, method: SourceMethod): Promise<Resp
 
   console.info({ event: 'proxy.route', method, targetUrl, reqBody: clientReqBody })
 
-  if (!targetUrl) {
-    return NextResponse.json({ message: 'Missing target URL' }, { status: 400 })
-  }
-
-  const fetchSource = async () => {
-    const response = await fetch(targetUrl, {
-      method,
-      body: clientReqBody,
-      headers: forwardedHeaders,
-      ...bypassRequestInit,
-    })
-
-    const targetResHeaders = response.headers
-
-    const resContentType = targetResHeaders.get('content-type')
-    const resType = resContentType?.includes('json') ? 'json' : 'text'
-
-    const message = {
-      source: await response[resType](),
-      meta: {
-        method,
-        targetUrl,
-        clientReqHeaders: request.headers,
-        clientReqBody,
-        targetResHeaders,
-        targetResContentType: resContentType,
-      },
-    }
-
-    return message
-  }
-
   const src = await autoCreateSource(targetUrl)
 
   try {
-    const message = await withTimeout(fetchSource, 5000)
+    // throw new Error('TIMEOUT')
+    const message = await withTimeout(
+      fetchTargetDirect.bind(null, targetUrl, {
+        method,
+        body: clientReqBody,
+        headers: forwardedHeaders,
+        ...bypassRequestInit,
+      }),
+      5000,
+    )
     return NextResponse.json({ message }, { headers: { 'X-Buffetd': `Proxy ${method} ${targetUrl}` } })
   } catch (error) {
     console.error({ event: 'proxy.fetch_error', targetUrl, err: String(error) })
     if (error instanceof Error && error.message === 'TIMEOUT') {
-      const r = await enqueueRefresh({
-        sourceId: `${src.id}`,
-        key: '',
-        priority: 'normal',
-        attempts: 0,
-        sourceMethod: method,
-      })
+      const result = await enqueueFetchSourceEntryTask(src.name!, '', method)
+
+      console.info({ event: 'proxy.enqueued', sourceName: src.name!, cacheKey: '', result })
+
+      // const r = await enqueueRefresh({
+      //   sourceId: `${src.id}`,
+      //   key: '',
+      //   priority: 'normal',
+      //   attempts: 0,
+      //   sourceMethod: method,
+      // })
 
       return ok({
         entry_status: 'enqueued',
         data: {
-          enqueued: r.enqueued,
-          jobId: r.jobId,
-          reason: r.reason,
-          sourceId: src.id,
+          enqueued: true,
+          jobId: result?.id,
+          reason: 'success',
+          sourceId: src.name!,
           key: '',
         },
       })

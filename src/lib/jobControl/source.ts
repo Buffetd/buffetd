@@ -143,11 +143,11 @@ export async function fetchSourceItem(
       const nextAttempts = (job.attempts ?? 0) + 1
       if (nextAttempts <= MAX_ATTEMPTS) {
         const requeue = { ...job, attempts: nextAttempts } as RefreshJob
-        await redis.rpush(redisQueueKey(src.sid), JSON.stringify(requeue))
+        await redis.rpush(redisQueueKey(src.name!), JSON.stringify(requeue))
       }
       console.warn({
         event: 'runner.pool_requeue_upstream',
-        source_id: src.id,
+        source_id: src.name!,
         key: job.key,
         status: res.status,
         next_attempts: nextAttempts,
