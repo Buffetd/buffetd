@@ -18,10 +18,10 @@ export const POST = async (request: NextRequest) => {
 
 async function handler(request: NextRequest): Promise<NextResponse<ChefResponse>> {
   const body = await request.json()
-  const { sourceId } = body
+  const { sourceName } = body
 
-  if (!sourceId) {
-    return err(422, 'Missing source_id')
+  if (!sourceName) {
+    return err(422, 'Missing sourceName')
   }
 
   let qlen_before: number | null = null
@@ -29,20 +29,20 @@ async function handler(request: NextRequest): Promise<NextResponse<ChefResponse>
   let qlen_after_run: number | null = null
 
   const runOpts = {
-    source_id: sourceId,
+    source_id: sourceName,
     maxPerSource: 10,
     timeBudgetMs: 5_000,
   } as const
 
   console.info({ event: 'chef.runOnce.invoke', ...runOpts })
   const summary = await runOnce({ ...runOpts })
-  if (sourceId) {
-    const qkey = redisQueueKey(sourceId)
+  if (sourceName) {
+    const qkey = redisQueueKey(sourceName)
     qlen_after_run = await redis.llen(qkey)
   }
 
   console.info({ event: 'chef.runOnce.summary', summary, qlen_after_run })
-  const resp = { ...summary, endpoint: 'chef', source_id: sourceId ?? null, debug: {} }
+  const resp = { ...summary, endpoint: 'chef', source_id: sourceName ?? null, debug: {} }
   resp.debug = {
     qlen_before,
     qlen_after_enqueue,

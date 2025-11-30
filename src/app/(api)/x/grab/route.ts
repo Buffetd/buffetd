@@ -66,9 +66,9 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
       return ok({
         entry_status: 'enqueued',
         data: {
-          enqueued: true,
-          jobId: result?.id,
-          reason: 'success',
+          enqueued: result?.enqueued ?? false,
+          jobId: result?.jobId,
+          reason: result?.reason ?? 'success',
           sourceId: sourceName,
           key,
         },

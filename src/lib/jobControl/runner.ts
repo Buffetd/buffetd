@@ -25,14 +25,14 @@ export interface RunOptions {
   timeBudgetMs?: number
 }
 
-async function getSources(sourceId: string | string[] | null) {
+async function getSources(sourceName: string | string[] | null) {
   const payload = await getPayload({ config })
 
-  if (!sourceId) return payload.find({ collection: 'sources', limit: DEFAULT_MAX_PER_SOURCE })
-  if (Array.isArray(sourceId)) {
-    return payload.find({ collection: 'sources', where: { name: { in: sourceId } } })
+  if (!sourceName) return payload.find({ collection: 'sources', limit: DEFAULT_MAX_PER_SOURCE })
+  if (Array.isArray(sourceName)) {
+    return payload.find({ collection: 'sources', where: { name: { in: sourceName } } })
   }
-  return payload.find({ collection: 'sources', where: { name: { equals: sourceId } } })
+  return payload.find({ collection: 'sources', where: { name: { equals: sourceName } } })
 }
 
 export async function runOnce(opts: RunOptions): Promise<RunSummary> {
