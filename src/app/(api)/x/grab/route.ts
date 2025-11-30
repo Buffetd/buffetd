@@ -4,7 +4,6 @@ import config from '@payload-config'
 
 import type { CacheEntry, EnqueueResult, ValidMethod } from '@/lib/types'
 import { getCacheEntry } from '@/lib/cacheControl'
-import { enqueueRefresh } from '@/lib/jobControl/queue'
 import { enqueueFetchSourceEntryTask } from '@/lib/jobControl/enqueue'
 import { ok, err } from '@/lib/helpers/response'
 import { withTimeout } from '@/lib/utils'
