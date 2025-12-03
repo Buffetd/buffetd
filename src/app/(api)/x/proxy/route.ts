@@ -99,7 +99,7 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
         },
       })
     }
-    return err(500, 'Internal Server Error')
+    return err(500, (error as Error).message ?? 'Internal Server Error')
   }
 }
 

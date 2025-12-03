@@ -73,10 +73,9 @@ export interface Config {
     categories: Category;
     users: User;
     sources: Source;
+    entries: Entry;
     caches: Cach;
     cache_pools: CachePool;
-    normal_cache: NormalCache;
-    pool_cache: PoolCache;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -100,10 +99,9 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     sources: SourcesSelect<false> | SourcesSelect<true>;
+    entries: EntriesSelect<false> | EntriesSelect<true>;
     caches: CachesSelect<false> | CachesSelect<true>;
     cache_pools: CachePoolsSelect<false> | CachePoolsSelect<true>;
-    normal_cache: NormalCacheSelect<false> | NormalCacheSelect<true>;
-    pool_cache: PoolCacheSelect<false> | PoolCacheSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -132,6 +130,7 @@ export interface Config {
   };
   jobs: {
     tasks: {
+      tSaveEntry: TaskTSaveEntry;
       tExecuteJob: TaskTExecuteJob;
       tFetchSourceEntry: TaskTFetchSourceEntry;
       tSendEmail: TaskTSendEmail;
@@ -826,6 +825,35 @@ export interface Source {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "entries".
+ */
+export interface Entry {
+  id: number;
+  source: string;
+  key?: string | null;
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  data?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "caches".
  */
 export interface Cach {
@@ -866,64 +894,6 @@ export interface CachePool {
   source_id?: string | null;
   cache_id?: string | null;
   pool_key?: string | null;
-  metadata?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  data?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "normal_cache".
- */
-export interface NormalCache {
-  id: number;
-  sourceId: string;
-  key?: string | null;
-  metadata?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  data?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pool_cache".
- */
-export interface PoolCache {
-  id: number;
-  sourceId: string;
-  key?: string | null;
   metadata?:
     | {
         [k: string]: unknown;
@@ -1088,7 +1058,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'tExecuteJob' | 'tFetchSourceEntry' | 'tSendEmail' | 'schedulePublish';
+        taskSlug: 'inline' | 'tSaveEntry' | 'tExecuteJob' | 'tFetchSourceEntry' | 'tSendEmail' | 'schedulePublish';
         taskID: string;
         input?:
           | {
@@ -1121,7 +1091,7 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'tExecuteJob' | 'tFetchSourceEntry' | 'tSendEmail' | 'schedulePublish') | null;
+  taskSlug?: ('inline' | 'tSaveEntry' | 'tExecuteJob' | 'tFetchSourceEntry' | 'tSendEmail' | 'schedulePublish') | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -1160,20 +1130,16 @@ export interface PayloadLockedDocument {
         value: number | Source;
       } | null)
     | ({
+        relationTo: 'entries';
+        value: number | Entry;
+      } | null)
+    | ({
         relationTo: 'caches';
         value: number | Cach;
       } | null)
     | ({
         relationTo: 'cache_pools';
         value: number | CachePool;
-      } | null)
-    | ({
-        relationTo: 'normal_cache';
-        value: number | NormalCache;
-      } | null)
-    | ({
-        relationTo: 'pool_cache';
-        value: number | PoolCache;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1558,6 +1524,18 @@ export interface SourcesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "entries_select".
+ */
+export interface EntriesSelect<T extends boolean = true> {
+  source?: T;
+  key?: T;
+  metadata?: T;
+  data?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "caches_select".
  */
 export interface CachesSelect<T extends boolean = true> {
@@ -1577,30 +1555,6 @@ export interface CachePoolsSelect<T extends boolean = true> {
   source_id?: T;
   cache_id?: T;
   pool_key?: T;
-  metadata?: T;
-  data?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "normal_cache_select".
- */
-export interface NormalCacheSelect<T extends boolean = true> {
-  sourceId?: T;
-  key?: T;
-  metadata?: T;
-  data?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pool_cache_select".
- */
-export interface PoolCacheSelect<T extends boolean = true> {
-  sourceId?: T;
-  key?: T;
   metadata?: T;
   data?: T;
   updatedAt?: T;
@@ -1984,6 +1938,33 @@ export interface FooterSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskTSaveEntry".
+ */
+export interface TaskTSaveEntry {
+  input: {
+    source:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    meta:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

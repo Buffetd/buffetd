@@ -15,8 +15,7 @@ import { Users } from './collections/Users'
 import { Sources } from './collections/Sources'
 import { Caches } from './collections/Caches'
 import { CachePools } from './collections/CachePools'
-import { NormalCache } from './collections/NormalCache'
-import { PoolCache } from './collections/PoolCache'
+import { Entries } from './collections/Entries'
 
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
@@ -25,6 +24,7 @@ import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 
 import { createExecuteJobTask, createFetchSourceEntryTask, createSendEmailTask } from '@/tasks/fetchSourceEntry'
+import { createSaveEntryTask } from '@/tasks/saveEntry'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -80,7 +80,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URI || '',
     },
   }),
-  collections: [Pages, Posts, Media, Categories, Users, Sources, Caches, CachePools, NormalCache, PoolCache],
+  collections: [Pages, Posts, Media, Categories, Users, Sources, Entries, Caches, CachePools],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins: [
@@ -126,7 +126,7 @@ export default buildConfig({
         return authHeader === `Bearer ${process.env.CRON_SECRET}`
       },
     },
-    tasks: [createExecuteJobTask(), createFetchSourceEntryTask(), createSendEmailTask()],
+    tasks: [createSaveEntryTask(), createExecuteJobTask(), createFetchSourceEntryTask(), createSendEmailTask()],
     autoRun: [
       {
         cron: '* * * * *',

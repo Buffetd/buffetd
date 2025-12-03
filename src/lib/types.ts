@@ -1,3 +1,7 @@
+// #region General
+
+// #endregion
+
 import { Metadata } from '@/collections/Caches'
 
 export type SourceMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
