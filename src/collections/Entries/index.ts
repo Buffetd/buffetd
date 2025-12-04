@@ -3,19 +3,18 @@ import * as z from 'zod'
 
 export const entryMetadataSchema = z.object({
   // Source Fields
-  source_id: z.string(),
-  key: z.string(),
+  sourceId: z.string(),
   // HTTP Cache Fields
-  ttl_s: z.number(),
+  ttlS: z.number(),
   etag: z.string().nullable(),
-  last_modified: z.string().nullable(),
+  lastModified: z.string().nullable(),
   // HTTP Response Fields
-  origin_status: z.number(),
-  content_type: z.string().nullable(),
-  data_encoding: z.enum(['json', 'text']),
+  originStatus: z.number(),
+  contentType: z.string().nullable(),
+  dataEncoding: z.enum(['json', 'text']),
   // Cache Fields
-  cached_at: z.iso.datetime(),
-  expires_at: z.iso.datetime(),
+  cachedAt: z.iso.datetime(),
+  expiresAt: z.iso.datetime(),
 })
 
 export type EntryMetadata = z.infer<typeof entryMetadataSchema>
@@ -36,6 +35,11 @@ export const Entries: CollectionConfig = {
     {
       name: 'metadata',
       type: 'json',
+      jsonSchema: {
+        uri: 'buffetd://entries/metadata.schema.json',
+        fileMatch: ['buffetd://entries/metadata.schema.json'],
+        schema: z.toJSONSchema(entryMetadataSchema) as any,
+      },
       validate: (value) => {
         try {
           entryMetadataSchema.parse(value)

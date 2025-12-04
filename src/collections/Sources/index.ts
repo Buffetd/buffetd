@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import * as z from 'zod'
+
 import type { Source } from '@/payload-types'
 
 import { anyone } from '../../access/anyone'
@@ -63,6 +64,11 @@ export const Sources: CollectionConfig = {
       name: 'rateLimit',
       type: 'json',
       defaultValue: {},
+      jsonSchema: {
+        uri: 'buffetd://sources/rateLimit.schema.json',
+        fileMatch: ['buffetd://sources/rateLimit.schema.json'],
+        schema: z.toJSONSchema(rateLimitSchema) as any,
+      },
       validate: (value) => {
         try {
           rateLimitSchema.parse(value)

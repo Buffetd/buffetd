@@ -809,15 +809,13 @@ export interface Source {
     | number
     | boolean
     | null;
-  rateLimit?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  rateLimit?: {
+    requestPerSecond?: number;
+    requestPerMinute?: number;
+    requestPerHour?: number;
+    requestPerDay?: number;
+    requestPerMonth?: number;
+  };
   cacheTTL?: number | null;
   supportsPool?: boolean | null;
   updatedAt: string;
@@ -831,15 +829,17 @@ export interface Entry {
   id: number;
   source: string;
   key?: string | null;
-  metadata?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  metadata?: {
+    sourceId: string;
+    ttlS: number;
+    etag: string | null;
+    lastModified: string | null;
+    originStatus: number;
+    contentType: string | null;
+    dataEncoding: 'json' | 'text';
+    cachedAt: string;
+    expiresAt: string;
+  };
   data?:
     | {
         [k: string]: unknown;
