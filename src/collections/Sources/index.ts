@@ -19,6 +19,7 @@ const rateLimitSchema = z
   })
 
 export type RateLimit = z.infer<typeof rateLimitSchema>
+export const rateLimitJSONSchema = z.toJSONSchema(rateLimitSchema)
 
 export const Sources: CollectionConfig = {
   slug: 'sources',
@@ -66,8 +67,8 @@ export const Sources: CollectionConfig = {
       defaultValue: {},
       jsonSchema: {
         uri: 'buffetd://sources/rateLimit.schema.json',
-        fileMatch: ['buffetd://sources/rateLimit.schema.json'],
-        schema: z.toJSONSchema(rateLimitSchema) as any,
+        fileMatch: [],
+        schema: rateLimitJSONSchema as any,
       },
       validate: (value) => {
         try {

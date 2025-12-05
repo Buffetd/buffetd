@@ -1,11 +1,12 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
+import type { PureEntry } from '@/types'
 import type { CacheEntry, Metadata, RefreshJob } from '@/lib/types'
 import { redis } from '@/lib/redis'
 import { redisQueueKey, sanitizePoolKey } from '@/lib/key'
 import { computeExpiresAt } from '@/lib/utils'
-import { setCacheEntry } from '@/lib/cacheControl'
+import { setEntry } from '@/lib/storage'
 
 import { fetchSourceItem } from './source'
 
@@ -87,13 +88,13 @@ export async function runOnce(opts: RunOptions): Promise<RunSummary> {
       if (!job?.key) continue
 
       try {
-        const ttl_s = Number(src.cacheTTL ?? 600)
-        const initMetadata: Partial<Metadata> = {
-          source_id: `${src.id}`,
-          key: job.key,
+        const ttlS = Number(src.cacheTTL ?? 600)
+        const initMetadata: Partial<PureEntry['meta']> = {
+          sourceId: `${src.id}`,
+          // key: job.key,
           // stale: false, // Will be recomputed by setCacheEntry,
-          ttl_s,
-          expires_at: computeExpiresAt(ttl_s),
+          ttlS,
+          expiresAt: computeExpiresAt(ttlS) ?? '',
         }
 
         // Pool mode: keys starting with "/pool:" are treated as pool collection jobs
@@ -118,15 +119,17 @@ export async function runOnce(opts: RunOptions): Promise<RunSummary> {
 
         if (!result) continue
 
-        const entry: CacheEntry<Record<string, unknown>> = {
+        const entry: PureEntry = {
+          source: src.name!,
+          key: job.key!,
           data: result.data,
-          metadata: {
+          meta: {
             ...initMetadata,
             ...result.metadata,
-          } as Metadata,
+          } as PureEntry['meta'],
         }
 
-        await setCacheEntry(src.name!, job.key, entry, { ttlSec: ttl_s })
+        await setEntry(entry)
       } catch (error) {
         perSource[src.name!].errors++
         console.error({ event: 'runner.refresh_error', source_id: src.name!, key: job?.key, err: String(error) })

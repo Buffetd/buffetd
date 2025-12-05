@@ -828,12 +828,12 @@ export interface Entry {
   source: string;
   key: string;
   meta?: {
-    sourceId: string;
+    sourceId: number;
     ttlS: number;
-    etag: string | null;
-    lastModified: string | null;
+    etag?: string | null;
+    lastModified?: string | null;
     originStatus: number;
-    contentType: string | null;
+    contentType?: string | null;
     dataEncoding: 'json' | 'text' | 'base64';
     cachedAt: string;
     expiresAt: string;
@@ -1896,15 +1896,26 @@ export interface FooterSelect<T extends boolean = true> {
  */
 export interface TaskTSaveEntry {
   input: {
-    entry:
-      | {
-          [k: string]: unknown;
-        }
-      | unknown[]
-      | string
-      | number
-      | boolean
-      | null;
+    entry: {
+      source: string;
+      key: string;
+      meta: {
+        sourceId: number;
+        ttlS: number;
+        etag?: string | null;
+        lastModified?: string | null;
+        originStatus: number;
+        contentType?: string | null;
+        dataEncoding: 'json' | 'text' | 'base64';
+        cachedAt: string;
+        expiresAt: string;
+      };
+      value: {
+        [k: string]: unknown;
+      };
+    };
+    persist: boolean;
+    ttlSec: number;
   };
   output?: unknown;
 }

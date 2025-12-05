@@ -1,29 +1,46 @@
+import * as z from 'zod'
 import type { TaskConfig, TypedJobs, TaskHandler, Field } from 'payload'
 
-import type { Metadata } from '@/lib/types'
-import { setCacheEntry } from '@/lib/cacheControl'
+import type { PureEntry } from '@/types'
+import { setEntry } from '@/lib/storage'
 
-import { createTask } from './helper'
+import { entryMetadataSchema } from '@/collections/Entries'
+
+const entryInputSchema = z.object({
+  source: z.string(),
+  key: z.string(),
+  meta: entryMetadataSchema,
+  value: z.record(z.string(), z.any()),
+})
+const entryInputJSONSchema = z.toJSONSchema(entryInputSchema)
 
 export const createSaveEntryTask = (): TaskConfig<'tSaveEntry'> => {
-  const fields = ['source|json|required', 'meta|json|required']
+  return {
+    slug: 'tSaveEntry',
+    inputSchema: [
+      {
+        name: 'entry',
+        type: 'json',
+        required: true,
+        jsonSchema: { uri: '', fileMatch: [], schema: entryInputJSONSchema as any },
+      },
+      { name: 'persist', type: 'checkbox', required: true },
+      { name: 'ttlSec', type: 'number', required: true },
+    ],
+    handler: async ({ input, req }) => {
+      if (!input.entry || typeof input.entry !== 'object' || Array.isArray(input.entry)) {
+        throw new Error('Invalid entry payload for tSaveEntry')
+      }
 
-  return createTask('tSaveEntry', fields, async ({ input, req }) => {
-    if (!input.meta || typeof input.meta !== 'object' || Array.isArray(input.meta)) {
-      throw new Error('Invalid meta payload for tSaveEntry')
-    }
+      const entry = input.entry as PureEntry
+      const persist = input.persist
+      const ttlSec = input.ttlSec
 
-    const meta = input.meta as { source_id: string; key: string; ttl_s: number }
+      await setEntry(entry, { persist, ttlSec })
 
-    await setCacheEntry(
-      meta.source_id,
-      meta.key,
-      { data: input.source, metadata: meta as unknown as Metadata },
-      { ttlSec: meta.ttl_s },
-    )
-
-    return {
-      output: { saved: true, source: input.source, meta },
-    }
-  })
+      return {
+        output: { saved: true },
+      }
+    },
+  }
 }

@@ -3,6 +3,7 @@ import config from '@payload-config'
 
 import { Source } from '@/payload-types'
 
+import type { PureEntry } from '@/types'
 import type { CacheDataEncoding, Metadata, CacheEntry, RefreshJob } from '../types'
 import { redis } from '@/lib/redis'
 import { redisQueueKey, sanitizePoolKey, keyHash } from '@/lib/key'
@@ -162,13 +163,13 @@ export async function fetchSourceItem(
   const etag = res.headers.get('etag')
   const lastMod = res.headers.get('last-modified')
 
-  const metadata: Partial<Metadata> = {
-    cached_at: new Date().toISOString(), // Will be overwritten by setCacheEntry with the current time
+  const metadata: Partial<PureEntry['meta']> = {
+    cachedAt: new Date().toISOString(), // Will be overwritten by setCacheEntry with the current time
     etag: etag ?? undefined,
-    last_modified: lastMod ?? undefined,
-    origin_status: res.status,
-    content_type: contentType ?? undefined,
-    data_encoding: encoding,
+    lastModified: lastMod ?? undefined,
+    originStatus: res.status,
+    contentType: contentType ?? undefined,
+    dataEncoding: encoding,
   }
 
   jobStats.updated++

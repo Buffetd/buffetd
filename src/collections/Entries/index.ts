@@ -3,14 +3,14 @@ import * as z from 'zod'
 
 export const entryMetadataSchema = z.object({
   // Source Fields
-  sourceId: z.string(),
+  sourceId: z.number(),
   // HTTP Cache Fields
   ttlS: z.number(),
-  etag: z.string().nullable(),
-  lastModified: z.string().nullable(),
+  etag: z.string().nullish(),
+  lastModified: z.string().nullish(),
   // HTTP Response Fields
   originStatus: z.number(),
-  contentType: z.string().nullable(),
+  contentType: z.string().nullish(),
   dataEncoding: z.enum(['json', 'text', 'base64']),
   // Cache Fields
   cachedAt: z.iso.datetime(),
@@ -18,6 +18,7 @@ export const entryMetadataSchema = z.object({
 })
 
 export type EntryMetadata = z.infer<typeof entryMetadataSchema>
+export const entryMetadataJSONSchema = z.toJSONSchema(entryMetadataSchema)
 
 export const Entries: CollectionConfig = {
   slug: 'entries',
@@ -38,8 +39,8 @@ export const Entries: CollectionConfig = {
       type: 'json',
       jsonSchema: {
         uri: 'buffetd://entries/meta.schema.json',
-        fileMatch: ['buffetd://entries/meta.schema.json'],
-        schema: z.toJSONSchema(entryMetadataSchema) as any,
+        fileMatch: [],
+        schema: entryMetadataJSONSchema as any,
       },
       validate: (value) => {
         try {
