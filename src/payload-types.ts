@@ -75,7 +75,6 @@ export interface Config {
     sources: Source;
     entries: Entry;
     caches: Cach;
-    cache_pools: CachePool;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -101,7 +100,6 @@ export interface Config {
     sources: SourcesSelect<false> | SourcesSelect<true>;
     entries: EntriesSelect<false> | EntriesSelect<true>;
     caches: CachesSelect<false> | CachesSelect<true>;
-    cache_pools: CachePoolsSelect<false> | CachePoolsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -836,11 +834,11 @@ export interface Entry {
     lastModified: string | null;
     originStatus: number;
     contentType: string | null;
-    dataEncoding: 'json' | 'text';
+    dataEncoding: 'json' | 'text' | 'base64';
     cachedAt: string;
     expiresAt: string;
   };
-  data?:
+  value?:
     | {
         [k: string]: unknown;
       }
@@ -874,36 +872,6 @@ export interface Cach {
     expires_at: string | null;
   };
   data:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "cache_pools".
- */
-export interface CachePool {
-  id: number;
-  source_id?: string | null;
-  cache_id?: string | null;
-  pool_key?: string | null;
-  metadata?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  data?:
     | {
         [k: string]: unknown;
       }
@@ -1136,10 +1104,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'caches';
         value: number | Cach;
-      } | null)
-    | ({
-        relationTo: 'cache_pools';
-        value: number | CachePool;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1530,7 +1494,7 @@ export interface EntriesSelect<T extends boolean = true> {
   source?: T;
   key?: T;
   meta?: T;
-  data?: T;
+  value?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1542,19 +1506,6 @@ export interface CachesSelect<T extends boolean = true> {
   cid?: T;
   source_id?: T;
   key?: T;
-  metadata?: T;
-  data?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "cache_pools_select".
- */
-export interface CachePoolsSelect<T extends boolean = true> {
-  source_id?: T;
-  cache_id?: T;
-  pool_key?: T;
   metadata?: T;
   data?: T;
   updatedAt?: T;
@@ -1945,16 +1896,7 @@ export interface FooterSelect<T extends boolean = true> {
  */
 export interface TaskTSaveEntry {
   input: {
-    source:
-      | {
-          [k: string]: unknown;
-        }
-      | unknown[]
-      | string
-      | number
-      | boolean
-      | null;
-    meta:
+    entry:
       | {
           [k: string]: unknown;
         }

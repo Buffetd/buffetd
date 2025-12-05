@@ -11,7 +11,7 @@ export const entryMetadataSchema = z.object({
   // HTTP Response Fields
   originStatus: z.number(),
   contentType: z.string().nullable(),
-  dataEncoding: z.enum(['json', 'text']),
+  dataEncoding: z.enum(['json', 'text', 'base64']),
   // Cache Fields
   cachedAt: z.iso.datetime(),
   expiresAt: z.iso.datetime(),
@@ -51,7 +51,7 @@ export const Entries: CollectionConfig = {
       },
     },
     {
-      name: 'data',
+      name: 'value',
       type: 'json',
     },
   ],
