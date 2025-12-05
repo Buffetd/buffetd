@@ -828,8 +828,8 @@ export interface Source {
 export interface Entry {
   id: number;
   source: string;
-  key?: string | null;
-  metadata?: {
+  key: string;
+  meta?: {
     sourceId: string;
     ttlS: number;
     etag: string | null;
@@ -1529,7 +1529,7 @@ export interface SourcesSelect<T extends boolean = true> {
 export interface EntriesSelect<T extends boolean = true> {
   source?: T;
   key?: T;
-  metadata?: T;
+  meta?: T;
   data?: T;
   updatedAt?: T;
   createdAt?: T;

@@ -31,13 +31,14 @@ export const Entries: CollectionConfig = {
       name: 'key',
       type: 'text',
       defaultValue: '/',
+      required: true,
     },
     {
-      name: 'metadata',
+      name: 'meta',
       type: 'json',
       jsonSchema: {
-        uri: 'buffetd://entries/metadata.schema.json',
-        fileMatch: ['buffetd://entries/metadata.schema.json'],
+        uri: 'buffetd://entries/meta.schema.json',
+        fileMatch: ['buffetd://entries/meta.schema.json'],
         schema: z.toJSONSchema(entryMetadataSchema) as any,
       },
       validate: (value) => {
