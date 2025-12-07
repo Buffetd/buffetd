@@ -33,8 +33,8 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
   const src = await autoCreateSource(targetUrl)
   const entry = await getEntry(src.name!, key, { fallback: true })
   if (entry) {
-    console.info({ event: 'proxy.hit-cache', sourceName: src.name!, cacheKey: key })
-    return NextResponse.json({ message: entry }, { headers: { 'X-Buffetd': `Proxy hit cache ${method} ${targetUrl}` } })
+    console.info({ event: 'proxy.hit', sourceName: src.name!, key })
+    return ok({ message: entry }, { 'X-Buffetd': `Proxy hit cache ${method} ${targetUrl}` })
   }
 
   const clientReqBody = method === 'POST' ? await request.json() : undefined
@@ -117,7 +117,7 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
       console.error({ event: 'proxy.save_entry_error', targetUrl, err: String(e) })
     })
 
-    return NextResponse.json({ message }, { headers: { 'X-Buffetd': `Proxy ${method} ${targetUrl}` } })
+    return ok({ message }, { 'X-Buffetd': `Proxy ${method} ${targetUrl}` })
   } catch (error) {
     console.error({ event: 'proxy.fetch_error', targetUrl, err: String(error) })
     /**

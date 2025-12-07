@@ -2,11 +2,14 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-import type { CacheEntry, EnqueueResult, ValidMethod } from '@/lib/types'
+import type { PureEntry, ValidMethod } from '@/types'
+import type { CacheEntry, EnqueueResult } from '@/lib/types'
 import { getCacheEntry } from '@/lib/cacheControl'
-import { enqueueFetchSourceEntryTask } from '@/lib/jobControl/enqueue'
 import { ok, err } from '@/lib/helpers/response'
 import { withTimeout } from '@/lib/utils'
+import { getEntry } from '@/lib/storage'
+
+import { enqueueFetchSourceEntryTask } from '@/lib/jobControl/enqueue'
 import { fetchTargetDirect } from '@/lib/jobControl/sourceFetch'
 
 const payload = await getPayload({ config })
@@ -23,22 +26,23 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
   const { sourceName, key } = args
   if (!sourceName || !key) return err(422, 'Missing source name or key')
 
-  const sources = await payload.find({ collection: 'sources', where: { name: { equals: sourceName } } })
-  if (sources.docs.length === 0) return err(404, 'Source not found')
-
-  const src = sources.docs[0]
-  const cacheKey = src.supportsPool ? `/pool:${key}` : key
-  const entry: CacheEntry | null = await getCacheEntry(sourceName, cacheKey)
-
+  /**
+   * 1. Check Cache
+   */
+  const entry = await getEntry(sourceName, key, { fallback: true })
   if (entry) {
-    console.info({ event: 'grab.hit', sourceName, cacheKey })
-    return ok({ entry_status: 'hit', data: entry })
+    console.info({ event: 'grab.hit', sourceName, key })
+    return ok({ entry_status: 'hit', entry }, { 'X-Buffetd': `Grab hit cache ${method} ${sourceName} ${key}` })
   }
 
+  const sources = await payload.find({ collection: 'sources', where: { name: { equals: sourceName } } })
+  if (sources.docs.length === 0) return err(404, 'Source not found')
+  const src = sources.docs[0]
+  // const cacheKey = src.supportsPool ? `/pool:${key}` : key
+
   try {
-    throw new Error('TIMEOUT')
+    // throw new Error('TIMEOUT')
     const url = src.baseUrl + key
-    console.info({ event: 'grab.fetch', sourceName, cacheKey, url })
     const message = await withTimeout(
       () =>
         fetchTargetDirect(url, {
@@ -48,12 +52,15 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
         }),
       1000,
     )
+
+    console.info({ event: 'grab.fetch', sourceName, key, url })
+
     return ok({ entry_status: 'source', message })
   } catch (error) {
     if (error instanceof Error && error.message === 'TIMEOUT') {
-      const result = await enqueueFetchSourceEntryTask(sourceName, cacheKey, method)
+      const result = await enqueueFetchSourceEntryTask(sourceName, key, method)
 
-      console.info({ event: 'grab.enqueued', sourceName, cacheKey, result })
+      console.info({ event: 'grab.enqueued', sourceName, key, result })
 
       // const r = await enqueueRefresh({
       //   sourceId: sourceName,
@@ -74,7 +81,7 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
         },
       })
     }
-    console.error({ event: 'grab.error', sourceName, cacheKey, err: String(error) })
+    console.error({ event: 'grab.error', sourceName, key, err: String(error) })
     return err(500, 'Internal Server Error')
   }
 }
@@ -101,10 +108,6 @@ export const DELETE = async (request: NextRequest): Promise<Response> => {
 
 export const HEAD = async (request: NextRequest): Promise<Response> => {
   return handler(request, 'HEAD')
-}
-
-export const OPTIONS = async (request: NextRequest): Promise<Response> => {
-  return handler(request, 'OPTIONS')
 }
 
 function fromEntriesSmart<T>(entries: Iterable<[string, T]>) {

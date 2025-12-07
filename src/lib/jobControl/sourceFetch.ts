@@ -43,7 +43,7 @@ export async function fetchTargetWithParsed(url: string, init?: RequestInit, opt
   const resType = resContentType?.includes('json') ? 'json' : 'text'
 
   const message = {
-    source: await response[resType](),
+    value: await response[resType](),
     meta: {
       method: init?.method,
       targetUrl: url,
