@@ -109,7 +109,7 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
           cachedAt: new Date().toISOString(),
           expiresAt: new Date(Date.now() + 60 * 1000).toISOString(),
         },
-        value: message.source,
+        value: message.value,
       },
       persist: true,
       ttlSec: 60,
