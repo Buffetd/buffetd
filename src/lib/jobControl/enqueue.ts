@@ -36,8 +36,9 @@ async function enqueueTask(job: Job<FetchSourceEntryJobArgs>): Promise<EnqueueRe
   // if (job.jobType === 'memory') {
   //   return enqueueMemoryTask<A>(job)
   // }
-
-  return enqueueMemoryTask(job)
+  job.jobName
+  enqueuePayloadJob(job)
+  return enqueueMemoryJob(job)
 }
 
 export const DEFAULT_DEDUPE_TTL_S = 60 // same-key dedupe window
@@ -54,7 +55,7 @@ export interface EnqueueOptions {
   idempTtlS?: number
 }
 
-async function enqueueMemoryTask(job: Job<FetchSourceEntryJobArgs>, options?: EnqueueOptions): Promise<EnqueueResult> {
+async function enqueueMemoryJob(job: Job<FetchSourceEntryJobArgs>, options?: EnqueueOptions): Promise<EnqueueResult> {
   const { jobArgs } = job
 
   const sourceId = jobArgs.sourceName
@@ -90,7 +91,7 @@ async function enqueueMemoryTask(job: Job<FetchSourceEntryJobArgs>, options?: En
   return { enqueued: true, jobId, reason: 'success' }
 }
 
-async function enqueuePgTask<A>(job: Job<A>) {
+async function enqueuePayloadJob<A>(job: Job<A>) {
   const { jobName, jobArgs } = job
   const payload = await getPayload({ config })
 

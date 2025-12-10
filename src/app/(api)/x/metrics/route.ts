@@ -7,19 +7,27 @@ import { ok } from '@/lib/helpers/response'
 
 const payload = await getPayload({ config })
 
-function getCacheFromRedis() {
-  const cache = redis.get('cache')
-  // return JSON.parse(cache)
-}
+export const GET = async (_request: NextRequest): Promise<NextResponse> => {
+  const metrics = (await redis.hgetall('buffetd:metrics')) ?? {}
+  const cached = {
+    hit: metrics['cached:hit'] ?? 0,
+    miss: metrics['cached:miss'] ?? 0,
+    stale_served: metrics['cached:stale_served'] ?? 0,
+  }
 
-export const GET = async (request: NextRequest): Promise<NextResponse> => {
   const sources = await payload.find({ collection: 'sources', limit: 0 })
+  const entries = await payload.find({ collection: 'entries', limit: 0 })
+
+  const jobs = await payload.find({ collection: 'payload-jobs', limit: 0 })
+  const errorJobs = jobs.docs.filter((d) => d.hasError)
+  const runningJobs = jobs.docs.filter((d) => d.processing)
+  const pendingJobs = jobs.docs.filter((d) => !d.processing && !d.hasError)
 
   return ok({
-    uptime_s: 0,
-    cache: { hit: 0, miss: 0, stale_served: 0 },
-    sources: { count: sources.docs.length },
-    entries: {},
-    jobs: { queued: 0, running: 0, failed: 0 },
+    uptime_s: (Date.now() - Number(metrics?.startedAt ?? 0)) / 1000,
+    cached,
+    sources: { count: sources.totalDocs },
+    entries: { count: entries.totalDocs },
+    jobs: { all: jobs.totalDocs, running: runningJobs.length, pending: pendingJobs.length, failed: errorJobs.length },
   })
 }

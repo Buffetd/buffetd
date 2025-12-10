@@ -25,6 +25,8 @@ import { getServerSideURL } from './utilities/getURL'
 import { createExecuteJobTask, createFetchSourceEntryTask, createSendEmailTask } from '@/tasks/fetchSourceEntry'
 import { createSaveEntryTask } from '@/tasks/saveEntry'
 
+import { redis } from '@/lib/redis'
+
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
@@ -128,7 +130,7 @@ export default buildConfig({
     tasks: [createSaveEntryTask(), createExecuteJobTask(), createFetchSourceEntryTask(), createSendEmailTask()],
     autoRun: [
       {
-        cron: '* * * * *',
+        cron: '*/10 * * * *',
       },
     ],
   },
@@ -144,4 +146,15 @@ export default buildConfig({
       },
     },
   ],
+  onInit: async (payload) => {
+    console.log('Payload started!')
+
+    const startTime = Date.now()
+    await redis.hset('buffetd:metrics', {
+      startedAt: startTime,
+      'cached:hit': 0,
+      'cached:miss': 0,
+      'cached:stale': 0,
+    })
+  },
 })

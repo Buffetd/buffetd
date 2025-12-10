@@ -8,6 +8,7 @@ import { runJobImmediatly } from '@/tasks/helper'
 import { withTimeout } from '@/lib/utils'
 import { ok, err } from '@/lib/helpers/response'
 import { getEntry } from '@/lib/storage'
+import { redis } from '@/lib/redis'
 
 import { enqueueFetchSourceEntryTask } from '@/lib/jobControl/enqueue'
 import { autoCreateSource } from '@/lib/jobControl/source'
@@ -33,6 +34,7 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
   const src = await autoCreateSource(targetUrl)
   const entry = await getEntry(src.name!, key, { fallback: true })
   if (entry) {
+    redis.hincrby('buffetd:metrics', 'cached.hit', 1)
     console.info({ event: 'proxy.hit', sourceName: src.name!, key })
     return ok({ message: entry }, { 'X-Buffetd': `Proxy hit cache ${method} ${targetUrl}` })
   }
@@ -85,7 +87,7 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
      */
     // throw new Error('TIMEOUT')
     const message = await withTimeout(
-      fetchTargetDirect.bind(null, targetUrl, {
+      fetchTargetDirect.bind(null, targetUrl!, {
         method,
         body: clientReqBody,
         headers: forwardedHeaders,

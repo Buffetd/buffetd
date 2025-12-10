@@ -8,6 +8,7 @@ import { getCacheEntry } from '@/lib/cacheControl'
 import { ok, err } from '@/lib/helpers/response'
 import { withTimeout } from '@/lib/utils'
 import { getEntry } from '@/lib/storage'
+import { redis } from '@/lib/redis'
 
 import { enqueueFetchSourceEntryTask } from '@/lib/jobControl/enqueue'
 import { fetchTargetDirect } from '@/lib/jobControl/sourceFetch'
@@ -31,6 +32,7 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
    */
   const entry = await getEntry(sourceName, key, { fallback: true })
   if (entry) {
+    redis.hincrby('buffetd:metrics', 'cached.hit', 1)
     console.info({ event: 'grab.hit', sourceName, key })
     return ok({ entry_status: 'hit', entry }, { 'X-Buffetd': `Grab hit cache ${method} ${sourceName} ${key}` })
   }
