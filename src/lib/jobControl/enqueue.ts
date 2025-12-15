@@ -1,7 +1,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-import type { RefreshJob, EnqueueResult, ValidMethod, FetchSourceEntryParam } from '@/lib/types'
+import type { ValidMethod, FetchSourceEntryParam, RefreshJob, EnqueueResult } from '@/types'
 import type { TaskKeys } from '@/tasks/fetchSourceEntry'
 import { redis } from '@/lib/redis'
 import { keyHash, normalizeKeyString, redisKeyDedup, redisQueueKey } from '@/lib/key'

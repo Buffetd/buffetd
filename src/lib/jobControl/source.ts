@@ -4,7 +4,7 @@ import config from '@payload-config'
 import { Source } from '@/payload-types'
 
 import type { PureEntry } from '@/types'
-import type { CacheDataEncoding, Metadata, CacheEntry, RefreshJob } from '../types'
+import type { CacheDataEncoding, CacheEntry, RefreshJob } from '@/types'
 import { redis } from '@/lib/redis'
 import { redisQueueKey, sanitizePoolKey, keyHash } from '@/lib/key'
 

@@ -1,8 +1,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-import type { PureEntry } from '@/types'
-import type { CacheEntry, Metadata, RefreshJob } from '@/lib/types'
+import type { PureEntry, EntryMetadata, RefreshJob } from '@/types'
 import { redis } from '@/lib/redis'
 import { redisQueueKey, sanitizePoolKey } from '@/lib/key'
 import { computeExpiresAt } from '@/lib/utils'
@@ -90,7 +89,7 @@ export async function runOnce(opts: RunOptions): Promise<RunSummary> {
       try {
         const ttlS = Number(src.cacheTTL ?? 600)
         const initMetadata: Partial<PureEntry['meta']> = {
-          sourceId: `${src.id}`,
+          sourceId: src.id,
           // key: job.key,
           // stale: false, // Will be recomputed by setCacheEntry,
           ttlS,
@@ -122,7 +121,7 @@ export async function runOnce(opts: RunOptions): Promise<RunSummary> {
         const entry: PureEntry = {
           source: src.name!,
           key: job.key!,
-          data: result.data,
+          value: result.data,
           meta: {
             ...initMetadata,
             ...result.metadata,
