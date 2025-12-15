@@ -32,7 +32,7 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
    */
   const entry = await getEntry(sourceName, key, { fallback: true })
   if (entry) {
-    redis.hincrby('buffetd:metrics', 'cached.hit', 1)
+    redis.hincrby('buffetd:metrics', 'cached:hit', 1)
     console.info({ event: 'grab.hit', sourceName, key })
     return ok({ entry_status: 'hit', entry }, { 'X-Buffetd': `Grab hit cache ${method} ${sourceName} ${key}` })
   }

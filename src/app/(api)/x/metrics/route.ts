@@ -9,10 +9,11 @@ const payload = await getPayload({ config })
 
 export const GET = async (_request: NextRequest): Promise<NextResponse> => {
   const metrics = (await redis.hgetall('buffetd:metrics')) ?? {}
+  console.log(metrics)
   const cached = {
-    hit: metrics['cached:hit'] ?? 0,
-    miss: metrics['cached:miss'] ?? 0,
-    stale_served: metrics['cached:stale_served'] ?? 0,
+    hit: Number(metrics['cached:hit'] ?? 0),
+    miss: Number(metrics['cached:miss'] ?? 0),
+    stale_served: Number(metrics['cached:stale_served'] ?? 0),
   }
 
   const sources = await payload.find({ collection: 'sources', limit: 0 })
