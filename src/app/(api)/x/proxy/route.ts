@@ -1,9 +1,9 @@
+import { type NextRequest, NextResponse, after } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-import { type NextRequest, NextResponse } from 'next/server'
-
 import type { ValidMethod } from '@/types'
+import { updateCacheMetrics } from '@/actions/metrics'
 import { runJobImmediatly } from '@/tasks/helper'
 import { withTimeout } from '@/lib/utils'
 import { ok, err } from '@/lib/helpers/response'
@@ -33,11 +33,16 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
   const key = url.href.replace(url.origin, '')
   const src = await autoCreateSource(targetUrl)
   const entry = await getEntry(src.name!, key, { fallback: true })
-  // if (entry) {
-  //   redis.hincrby('buffetd:metrics', 'cached:hit', 1)
-  //   console.info({ event: 'proxy.hit', sourceName: src.name!, key })
-  //   return ok({ message: entry }, { 'X-Buffetd': `Proxy hit cache ${method} ${targetUrl}` })
-  // }
+  if (entry) {
+    after(async () => {
+      console.log('after')
+      await updateCacheMetrics({ hit: true })
+      console.log('after execute')
+    })
+    redis.hincrby('buffetd:metrics', 'cached:hit', 1)
+    console.info({ event: 'proxy.hit', sourceName: src.name!, key })
+    return ok({ message: entry }, { 'X-Buffetd': `Proxy hit cache ${method} ${targetUrl}` })
+  }
 
   const clientReqBody = method === 'POST' ? await request.json() : undefined
   const clientReqHeaders = request.headers
@@ -85,7 +90,7 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
     /**
      * 2. Origin Fetch
      */
-    throw new Error('TIMEOUT')
+    // throw new Error('TIMEOUT')
     const message = await withTimeout(
       fetchTargetDirect.bind(null, targetUrl!, {
         method,
@@ -119,6 +124,11 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
       console.error({ event: 'proxy.save_entry_error', targetUrl, err: String(e) })
     })
 
+    after(async () => {
+      console.log('after miss')
+      await updateCacheMetrics({ miss: true })
+      console.log('after execute miss')
+    })
     return ok({ message }, { 'X-Buffetd': `Proxy ${method} ${targetUrl}` })
   } catch (error) {
     console.error({ event: 'proxy.fetch_error', targetUrl, err: String(error) })

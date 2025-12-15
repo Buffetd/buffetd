@@ -31,3 +31,20 @@ export async function getMetrics() {
     jobs: { all: jobs.totalDocs, running: runningJobs.length, pending: pendingJobs.length, failed: errorJobs.length },
   }
 }
+
+type CacheOp = {
+  hit?: boolean
+  miss?: boolean
+  stale?: boolean
+}
+export async function updateCacheMetrics(cacheOp: CacheOp) {
+  if (cacheOp.hit) {
+    return await redis.hincrby('buffetd:metrics', 'cached:hit', 1)
+  }
+  if (cacheOp.miss) {
+    return await redis.hincrby('buffetd:metrics', 'cached:miss', 1)
+  }
+  if (cacheOp.stale) {
+    return await redis.hincrby('buffetd:metrics', 'cached:stale', 1)
+  }
+}

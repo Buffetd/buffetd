@@ -1,8 +1,9 @@
-import { type NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse, after } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-import type { PureEntry, ValidMethod, CacheEntry, EnqueueResult } from '@/types'
+import type { ValidMethod, CacheEntry, EnqueueResult } from '@/types'
+import { updateCacheMetrics } from '@/actions/metrics'
 import { getCacheEntry } from '@/lib/cacheControl'
 import { ok, err } from '@/lib/helpers/response'
 import { withTimeout } from '@/lib/utils'
@@ -31,7 +32,11 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
    */
   const entry = await getEntry(sourceName, key, { fallback: true })
   if (entry) {
-    redis.hincrby('buffetd:metrics', 'cached:hit', 1)
+    after(async () => {
+      console.log('after')
+      await updateCacheMetrics({ hit: true })
+      console.log('after execute')
+    })
     console.info({ event: 'grab.hit', sourceName, key })
     return ok({ entry_status: 'hit', entry }, { 'X-Buffetd': `Grab hit cache ${method} ${sourceName} ${key}` })
   }
@@ -56,6 +61,11 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
 
     console.info({ event: 'grab.fetch', sourceName, key, url })
 
+    after(async () => {
+      console.log('after miss')
+      await updateCacheMetrics({ miss: true })
+      console.log('after execute miss')
+    })
     return ok({ entry_status: 'source', message })
   } catch (error) {
     if (error instanceof Error && error.message === 'TIMEOUT') {
