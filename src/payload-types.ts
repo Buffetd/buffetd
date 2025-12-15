@@ -74,7 +74,6 @@ export interface Config {
     users: User;
     sources: Source;
     entries: Entry;
-    caches: Cach;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -99,7 +98,6 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     sources: SourcesSelect<false> | SourcesSelect<true>;
     entries: EntriesSelect<false> | EntriesSelect<true>;
-    caches: CachesSelect<false> | CachesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -852,39 +850,6 @@ export interface Entry {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "caches".
- */
-export interface Cach {
-  id: number;
-  cid?: string | null;
-  source_id?: string | null;
-  key?: string | null;
-  metadata: {
-    source_id: string;
-    key: string;
-    etag?: string;
-    last_modified?: string;
-    ttl_s: number;
-    origin_status: number;
-    content_type?: string;
-    data_encoding: 'json' | 'text' | 'base64';
-    cached_at: string;
-    expires_at: string | null;
-  };
-  data:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1100,10 +1065,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'entries';
         value: number | Entry;
-      } | null)
-    | ({
-        relationTo: 'caches';
-        value: number | Cach;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1495,19 +1456,6 @@ export interface EntriesSelect<T extends boolean = true> {
   key?: T;
   meta?: T;
   value?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "caches_select".
- */
-export interface CachesSelect<T extends boolean = true> {
-  cid?: T;
-  source_id?: T;
-  key?: T;
-  metadata?: T;
-  data?: T;
   updatedAt?: T;
   createdAt?: T;
 }

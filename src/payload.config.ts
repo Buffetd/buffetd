@@ -13,7 +13,6 @@ import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { Users } from './collections/Users'
 import { Sources } from './collections/Sources'
-import { Caches } from './collections/Caches'
 import { Entries } from './collections/Entries'
 
 import { Footer } from './Footer/config'
@@ -81,7 +80,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URI || '',
     },
   }),
-  collections: [Pages, Posts, Media, Categories, Users, Sources, Entries, Caches],
+  collections: [Pages, Posts, Media, Categories, Users, Sources, Entries],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins: [

@@ -2,7 +2,7 @@
 
 // #endregion
 
-import { Metadata } from '@/collections/Caches'
+import { EntryMetadata as Metadata } from '@/collections/Entries'
 
 export type SourceMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
 export type ValidMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
