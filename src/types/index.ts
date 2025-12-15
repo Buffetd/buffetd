@@ -1,5 +1,4 @@
 import type { Source, Entry } from '@/payload-types'
-
 import { EntryMetadata } from '@/collections/Entries'
 
 type ExcludePayloadProps<T> = Omit<T, 'id' | 'updatedAt' | 'createdAt'>

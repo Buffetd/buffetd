@@ -12,7 +12,7 @@ export async function getMetrics() {
   const cached = {
     hit: Number(metrics['cached:hit'] ?? 0),
     miss: Number(metrics['cached:miss'] ?? 0),
-    stale_served: Number(metrics['cached:stale_served'] ?? 0),
+    stale_served: Number(metrics['cached:stale'] ?? 0),
   }
 
   const sources = await payload.find({ collection: 'sources', limit: 0 })
