@@ -1,72 +1,9 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
+import type { PureEntry } from '@/types'
 import { autoCreateSource } from '@/lib/jobControl/source'
-
-async function testCache() {
-  const payload = await getPayload({ config })
-
-  const data = {
-    cid: '',
-    data: {
-      id: 277,
-      uuid: 'e31e3a1c-5afe-4424-ad38-6c7081e8ddce',
-      hitokoto: '一起去看星星吧。',
-      type: 'b',
-      from: '未来日记',
-      from_who: null,
-      creator: 'lies',
-      creator_uid: 0,
-      reviewer: 0,
-      commit_from: 'web',
-      created_at: '1468949092',
-      length: 8,
-    },
-    metadata: {
-      source_id: 'hitokoto',
-      key: '/?c=b',
-      // key_hash: '',
-      cached_at: '2025-11-10T13:00:01.430Z',
-      expires_at: '2025-11-10T13:01:01.430Z',
-      // stale: false,
-      ttl_s: 60,
-      last_modified: 'Mon, 10 Nov 2025 13:00:01 GMT',
-      origin_status: 200,
-      content_type: 'application/json; charset=utf-8',
-      data_encoding: 'json' as const,
-    },
-  }
-  const res = await payload.create({ collection: 'caches', data })
-  console.log(res)
-}
-
-async function testPoolCache() {
-  const payload = await getPayload({ config })
-
-  const data = {
-    sourceId: '1',
-    cacheId: '/pool:/?c=b',
-    poolKey: '/?c=b',
-    poolHash: '577415b6ed54b752521c39676aa128b933c1ee46',
-    metadata: {},
-    data: {
-      id: 5439,
-      uuid: 'c27b5554-6d5d-4146-80c8-5d2fa8538e7b',
-      hitokoto: '任尘世繁华，唯有守护你的一切，才是我此生唯一的使命。',
-      type: 'b',
-      from: '次元战争·红龙',
-      from_who: '初启源',
-      creator: 'Rain',
-      creator_uid: 5767,
-      reviewer: 4756,
-      commit_from: 'web',
-      created_at: '1586109411',
-      length: 26,
-    },
-  }
-  const res = await payload.create({ collection: 'cache_pools', data })
-  console.log(res)
-}
+import { setEntry } from '@/lib/storage'
 
 async function sendEmail() {
   const payload = await getPayload({ config })
@@ -77,12 +14,43 @@ async function sendEmail() {
   })
 }
 
-async function main() {
-  // await testPoolCache()
-  // await sendEmail()
+async function testEntry() {
+  const entry: PureEntry = {
+    source: 'test',
+    key: '/test',
+    meta: {
+      sourceId: 1,
+      ttlS: 3600,
+      originStatus: 200,
+      dataEncoding: 'json',
+      cachedAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
+    },
+    value: {
+      id: 4559,
+      uuid: '3f97cf57-6abd-46eb-a501-fc7f49aa2ab0',
+      hitokoto: '我们是学生，学生就要有学生的样子。',
+      type: 'b',
+      from: 'JOJO的奇妙冒险',
+      from_who: null,
+      creator: '你家炸了',
+      creator_uid: 3557,
+      reviewer: 0,
+      commit_from: 'web',
+      created_at: '1564109075',
+      length: 17,
+    },
+  }
+  const result = await setEntry(entry, { persist: true, ttlSec: 60 })
+  console.log(result)
+}
 
-  const src = await autoCreateSource('https://api.github.com')
-  console.log(src)
+async function main() {
+  // await sendEmail()
+  // const src = await autoCreateSource('https://api.github.com')
+  // console.log(src)
+
+  await testEntry()
 }
 
 await main()
