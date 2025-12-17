@@ -1,10 +1,15 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 import { computeExpiresAt, withTimeout } from './utils'
 
 describe('utils', () => {
   it('should compute expires at', () => {
-    expect(computeExpiresAt(60)).toBe(new Date(Date.now() + 60 * 1000).toISOString())
+    const now = Date.now()
+    vi.spyOn(Date, 'now').mockReturnValue(now)
+
+    expect(computeExpiresAt(60)).toBe(new Date(now + 60 * 1000).toISOString())
+
+    vi.restoreAllMocks()
   })
 
   it('should timeout', async () => {
