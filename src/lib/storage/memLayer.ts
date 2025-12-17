@@ -16,7 +16,7 @@ export async function setMemEntry(source: string, key: string, entry: PureEntry,
 
   const ttl = ttlSec ?? entry.meta?.ttlS ?? 60
 
-  await redis.set(cacheKey, entry, ttl > 0 ? { ex: ttl } : undefined)
+  return await redis.set(cacheKey, entry, ttl > 0 ? { ex: ttl } : undefined)
 }
 
 export async function delMemEntry(source: string, key: string) {
