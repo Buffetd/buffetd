@@ -12,6 +12,8 @@ public/media/
 public/robots.txt
 public/sitemap*.xml
 
+# Coverage
+coverage
 
 # Playwright
 node_modules/
