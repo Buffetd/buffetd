@@ -13,9 +13,9 @@ export async function getEntry(source: string, key: string, options?: { fallback
   if (sources.docs.length === 0) return null
   const src = sources.docs[0]
 
-  if (src.supportsPool) {
-    return null
-  }
+  // if (src.supportsPool) {
+  //   return null
+  // }
 
   const entry = await getMemEntry(source, key)
   if (entry) return entry
