@@ -18,7 +18,7 @@ export default async function Page() {
 
   return (
     <article className="pt-16 pb-24 container">
-      <h2 className="text-2xl text-center mb-6">Metrics</h2>
+      <h2 className="text-2xl text-center mb-6">Status</h2>
 
       <div className="w-96 border rounded-lg mx-auto">
         <ul role="list" className="divide-y divide-dashed">

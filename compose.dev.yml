@@ -1,0 +1,18 @@
+services:
+  payload:
+    image: node:22-alpine
+
+  postgres:
+    image: postgres:17-alpine
+
+  redis:
+    image: redis:7-alpine
+
+  serverless-redis-http:
+    image: hiett/serverless-redis-http:latest
+    ports:
+      - "6479:80"
+    environment:
+      SRH_MODE: env
+      SRH_TOKEN: example_dev_token
+      SRH_CONNECTION_STRING: "redis://redis:6379"

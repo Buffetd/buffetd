@@ -4,7 +4,6 @@ import config from '@payload-config'
 
 import type { ValidMethod, CacheEntry, EnqueueResult } from '@/types'
 import { updateCacheMetrics } from '@/actions/metrics'
-import { getCacheEntry } from '@/lib/cacheControl'
 import { ok, err } from '@/lib/helpers/response'
 import { withTimeout } from '@/lib/utils'
 import { getEntry } from '@/lib/storage'
