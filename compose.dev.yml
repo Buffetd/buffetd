@@ -1,9 +1,28 @@
 services:
   payload:
-    image: node:22-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.pnpm
+    ports:
+      - '4000:3000'
+    volumes:
+      - .:/home/node/app
+      - node_modules:/home/node/app/node_modules
+      - pnpm-store:/pnpm/store
+    working_dir: /home/node/app
+    command: sh -c "pnpm install --store-dir=/pnpm/store && pnpm dev"
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - .env.development.local
 
   postgres:
     image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: buffetd
+      POSTGRES_USER: buffetd
+      POSTGRES_PASSWORD: buffetd
 
   redis:
     image: redis:7-alpine
@@ -11,8 +30,15 @@ services:
   serverless-redis-http:
     image: hiett/serverless-redis-http:latest
     ports:
-      - "6479:80"
+      - '6479:80'
     environment:
       SRH_MODE: env
-      SRH_TOKEN: example_dev_token
-      SRH_CONNECTION_STRING: "redis://redis:6379"
+      SRH_TOKEN: f98a66dd772a147c32cff9934791edbda811425f
+      SRH_CONNECTION_STRING: 'redis://redis:6379'
+
+  mailhog:
+    image: mailhog/mailhog:latest
+
+volumes:
+  node_modules:
+  pnpm-store:
