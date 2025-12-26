@@ -9,7 +9,7 @@ services:
     volumes:
       - uploads:/app/public/media
     env_file:
-      - .env.prod
+      - .env.production.local
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,7 +38,7 @@ services:
   serverless-redis-http:
     image: hiett/serverless-redis-http:latest
     ports:
-      - '6479:80'
+      - '6080:80'
     environment:
       SRH_MODE: env
       SRH_TOKEN: f98a66dd772a147c32cff9934791edbda811425f
