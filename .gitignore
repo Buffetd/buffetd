@@ -22,5 +22,9 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 
+# env files
+.env.local
+.env*.local
+
 # Graph
 *.drawio.bkp
