@@ -1,28 +1,14 @@
 services:
-  payload:
-    image: node:22-alpine
-    ports:
-      - '3000:3000'
-    volumes:
-      - .:/home/node/app
-      - node_modules:/home/node/app/node_modules
-    working_dir: /home/node/app
-    command: sh -c "yarn install && yarn dev"
-    depends_on:
-      - postgres
-      - redis
-    env_file:
-      - .env
-
   postgres:
     image: postgres:17-alpine
+    ports:
+      - '5532:5432'
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: buffetd
       POSTGRES_USER: buffetd
       POSTGRES_PASSWORD: buffetd
-
-  redis:
-    image: redis:7-alpine
 
   serverless-redis-http:
     image: hiett/serverless-redis-http:latest
@@ -33,8 +19,14 @@ services:
       SRH_TOKEN: f98a66dd772a147c32cff9934791edbda811425f
       SRH_CONNECTION_STRING: 'redis://redis:6379'
 
+  redis:
+    image: redis:7-alpine
+
   mailhog:
     image: mailhog/mailhog:latest
+    ports:
+      - '1025:1025'
+      - '8025:8025'
 
 volumes:
-  node_modules:
+  postgres_data_dev:
