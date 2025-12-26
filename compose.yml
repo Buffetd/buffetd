@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - '3000:3000'
     volumes:
@@ -10,10 +11,14 @@ services:
     env_file:
       - .env.prod
     depends_on:
-      - postgres
-      - redis
-      - serverless-redis-http
-      - mailhog
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      serverless-redis-http:
+        condition: service_started
+      mailhog:
+        condition: service_started
 
   postgres:
     image: postgres:17-alpine
@@ -21,6 +26,12 @@ services:
       POSTGRES_DB: buffetd
       POSTGRES_USER: buffetd
       POSTGRES_PASSWORD: buffetd # need to secure in production
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U buffetd -d buffetd -h localhost']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
