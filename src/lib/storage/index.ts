@@ -11,7 +11,7 @@ export async function getEntry(source: string, key: string, options?: { fallback
 
   const sources = await payload.find({ collection: 'sources', where: { name: { equals: source } } })
   if (sources.docs.length === 0) return null
-  const src = sources.docs[0]
+  // const src = sources.docs[0]
 
   // if (src.supportsPool) {
   //   return null
@@ -21,7 +21,7 @@ export async function getEntry(source: string, key: string, options?: { fallback
   if (entry) return entry
 
   if (options?.fallback) {
-    let entry = await getPersistEntry(source, key)
+    const entry = await getPersistEntry(source, key)
     if (entry) {
       // Write to memory layer
       await setMemEntry(source, key, entry, 60)

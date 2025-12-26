@@ -1,8 +1,8 @@
-import { type NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 type ErrorResponse = { error: string }
-type SuccessResponse<T> = { data: T }
-type Response<T> = ErrorResponse | SuccessResponse<T>
+// type SuccessResponse<T> = { data: T }
+// type Response<T> = ErrorResponse | SuccessResponse<T>
 
 function json<D>(data: D, status: number, statusText: string, headers: HeadersInit) {
   return NextResponse.json(data, { status, statusText, headers })

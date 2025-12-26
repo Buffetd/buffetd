@@ -145,7 +145,7 @@ export default buildConfig({
       },
     },
   ],
-  onInit: async (payload) => {
+  onInit: async () => {
     console.log('Payload started!')
 
     const startTime = Date.now()

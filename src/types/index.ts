@@ -61,8 +61,6 @@ export interface GeneralTask<P = unknown> {
   params: P
 }
 
-export type AnyTask = GeneralTask<any>
-
 export type FetchSourceEntryParam = {
   sourceName: string
   key: string
@@ -82,8 +80,6 @@ export interface GeneralJob<P = unknown> {
   createdAt: string // ISO time
   params: P
 }
-
-export type AnyJob = GeneralJob<any>
 
 export type FetchSourceEntryJob = GeneralJob<FetchSourceEntryParam>
 

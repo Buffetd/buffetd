@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import * as z from 'zod'
+import type { JSONSchema4 } from 'json-schema'
 
 export const entryMetadataSchema = z.object({
   // Source Fields
@@ -40,7 +41,7 @@ export const Entries: CollectionConfig = {
       jsonSchema: {
         uri: 'buffetd://entries/meta.schema.json',
         fileMatch: [],
-        schema: entryMetadataJSONSchema as any,
+        schema: entryMetadataJSONSchema as unknown as JSONSchema4,
       },
       validate: (value) => {
         try {

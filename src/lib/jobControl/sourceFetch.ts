@@ -1,8 +1,8 @@
-import ky from 'ky'
+// import ky from 'ky'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-import { withTimeout, sleep } from '@/lib/utils'
+// import { withTimeout, sleep } from '@/lib/utils'
 
 interface SourceFetchOptions {
   attempts?: number
@@ -57,7 +57,7 @@ export async function fetchTargetWithParsed(url: string, init?: RequestInit, opt
   return message
 }
 
-export function fetchTarget(url: string, init?: RequestInit, options?: SourceFetchOptions) {
+export function fetchTarget(url: string, init?: RequestInit, _options?: SourceFetchOptions) {
   return fetcher(new Request(url, init))
 }
 

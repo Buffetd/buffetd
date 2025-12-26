@@ -1,7 +1,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-import type { PureEntry, EntryMetadata, RefreshJob } from '@/types'
+import type { PureEntry, RefreshJob } from '@/types'
 import { redis } from '@/lib/redis'
 import { redisQueueKey, sanitizePoolKey } from '@/lib/key'
 import { computeExpiresAt } from '@/lib/utils'

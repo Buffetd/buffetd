@@ -4,7 +4,7 @@ import config from '@payload-config'
 
 const payload = await getPayload({ config })
 
-export const GET = async (request: NextRequest): Promise<NextResponse> => {
+export const GET = async (): Promise<NextResponse> => {
   await payload.jobs.queue({
     task: 'tFetchSourceEntry',
     input: {

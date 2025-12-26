@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import * as z from 'zod'
+import type { JSONSchema4 } from 'json-schema'
 
 import type { Source } from '@/payload-types'
 
@@ -68,7 +69,7 @@ export const Sources: CollectionConfig = {
       jsonSchema: {
         uri: 'buffetd://sources/rateLimit.schema.json',
         fileMatch: [],
-        schema: rateLimitJSONSchema as any,
+        schema: rateLimitJSONSchema as unknown as JSONSchema4,
       },
       validate: (value) => {
         try {

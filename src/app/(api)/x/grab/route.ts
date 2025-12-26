@@ -1,25 +1,24 @@
-import { type NextRequest, NextResponse, after } from 'next/server'
+import { type NextRequest, after } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-import type { ValidMethod, CacheEntry, EnqueueResult } from '@/types'
+import type { ValidMethod } from '@/types'
 import { updateCacheMetrics } from '@/actions/metrics'
 import { ok, err } from '@/lib/helpers/response'
 import { withTimeout } from '@/lib/utils'
 import { getEntry } from '@/lib/storage'
-import { redis } from '@/lib/redis'
 
 import { enqueueFetchSourceEntryTask } from '@/lib/jobControl/enqueue'
 import { fetchTargetDirect } from '@/lib/jobControl/sourceFetch'
 
 const payload = await getPayload({ config })
 
-type ErrorResponse = { error: string }
+// type ErrorResponse = { error: string }
 
-type GrabResponse =
-  | { entry_status: 'hit'; data: CacheEntry }
-  | { entry_status: 'enqueued'; data: EnqueueResult }
-  | ErrorResponse
+// type GrabResponse =
+//   | { entry_status: 'hit'; data: CacheEntry }
+//   | { entry_status: 'enqueued'; data: EnqueueResult }
+//   | ErrorResponse
 
 async function handler(request: NextRequest, method: ValidMethod): Promise<Response> {
   const args = await extractArguments(request, ['sourceName', 'key'] as const, method)

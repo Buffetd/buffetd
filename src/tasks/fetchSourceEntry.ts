@@ -20,7 +20,7 @@ export function createTask<N extends TaskKeys>(name: N, input: string[], handler
 export const createFetchSourceEntryTask = (): TaskConfig<'tFetchSourceEntry'> => {
   const fields = ['sourceName|text|required', 'key|text|required', 'method|text|required']
 
-  return createTask('tFetchSourceEntry', fields, async ({ input, req }) => {
+  return createTask('tFetchSourceEntry', fields, async ({}) => {
     return {
       output: { executed: true },
     }
@@ -30,7 +30,7 @@ export const createFetchSourceEntryTask = (): TaskConfig<'tFetchSourceEntry'> =>
 export const createExecuteJobTask = (): TaskConfig<'tExecuteJob'> => {
   const fields = ['sourceName|text|required', 'key|text|required']
 
-  return createTask('tExecuteJob', fields, async ({ input, req }) => {
+  return createTask('tExecuteJob', fields, async ({}) => {
     return {
       output: { executed: true },
     }

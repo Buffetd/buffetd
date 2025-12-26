@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse, after } from 'next/server'
-import { getPayload } from 'payload'
-import config from '@payload-config'
+// import { getPayload } from 'payload'
+// import config from '@payload-config'
 
 import type { ValidMethod } from '@/types'
 import { updateCacheMetrics } from '@/actions/metrics'
@@ -17,7 +17,7 @@ import { fetchTargetDirect } from '@/lib/jobControl/sourceFetch'
 type BypassRequestInit = Omit<RequestInit, 'method' | 'body' | 'headers'>
 
 async function handler(request: NextRequest, method: ValidMethod): Promise<Response> {
-  const payload = await getPayload({ config })
+  // const payload = await getPayload({ config })
 
   const search = request.nextUrl.searchParams
   const targetUrl = search.get('url')

@@ -4,17 +4,17 @@ import config from '@payload-config'
 import { Source } from '@/payload-types'
 
 import type { PureEntry } from '@/types'
-import type { CacheDataEncoding, CacheEntry, RefreshJob } from '@/types'
+import type { CacheDataEncoding, RefreshJob } from '@/types'
 import { redis } from '@/lib/redis'
-import { redisQueueKey, sanitizePoolKey, keyHash } from '@/lib/key'
+import { redisQueueKey } from '@/lib/key'
 
 const payload = await getPayload({ config })
 
-const DEFAULT_MAX_PER_SOURCE = 20 // Max jobs per source per run
-const DEFAULT_TIME_BUDGET_MS = 5_000 // Time budget for immediate execution (ms)
+// const DEFAULT_MAX_PER_SOURCE = 20 // Max jobs per source per run
+// const DEFAULT_TIME_BUDGET_MS = 5_000 // Time budget for immediate execution (ms)
 const MAX_ATTEMPTS = 3 // Max retry attempts for transient errors (via requeue)
 
-function ensureHeaders(obj: Record<string, any> | null | undefined): Record<string, string> {
+function ensureHeaders(obj: Record<string, string> | null | undefined): Record<string, string> {
   const h: Record<string, string> = {}
   if (!obj) return h
   for (const [k, v] of Object.entries(obj)) {
@@ -24,7 +24,7 @@ function ensureHeaders(obj: Record<string, any> | null | undefined): Record<stri
   return h
 }
 
-function buildURL(base: string, path: string, q: Record<string, any> | null | undefined): string {
+function buildURL(base: string, path: string, q: Record<string, string> | null | undefined): string {
   // Combine base_url and key (key usually starts with "/")
   const u = new URL(path, base)
   if (q) {
@@ -38,13 +38,13 @@ function buildURL(base: string, path: string, q: Record<string, any> | null | un
 
 async function pickDataAndEncoding(
   res: Response,
-): Promise<{ data: any; encoding: CacheDataEncoding; contentType: string | null }> {
+): Promise<{ data: string; encoding: CacheDataEncoding; contentType: string | null }> {
   const ct = res.headers.get('content-type')
   const cts = (ct || '').toLowerCase()
   if (cts.includes('application/json')) {
     try {
       const json = await res.json()
-      return { data: json, encoding: 'json', contentType: ct }
+      return { data: JSON.stringify(json), encoding: 'json', contentType: ct }
     } catch {
       const txt = await res.text()
       return { data: txt, encoding: 'text', contentType: ct }
@@ -86,13 +86,13 @@ async function fetchWithRetry(
       if (res.status >= 500 || res.status === 429) {
         lastErr = new Error(`upstream status ${res.status}`)
       } else {
-        if (t) clearTimeout(t as any)
+        if (t) clearTimeout(t)
         return res
       }
     } catch (e) {
       lastErr = e
     } finally {
-      if (t) clearTimeout(t as any)
+      if (t) clearTimeout(t)
     }
     if (i < attempts) {
       const jitter = Math.floor(Math.random() * baseDelayMs)
@@ -104,7 +104,7 @@ async function fetchWithRetry(
 }
 
 // Neon may return JSON columns as strings; do a lenient parse of fields
-const parseMaybeObj = <T extends unknown>(v: unknown): T | null => {
+const parseMaybeObj = <T>(v: unknown): T | null => {
   if (!v) return null
   if (typeof v === 'string') {
     try {

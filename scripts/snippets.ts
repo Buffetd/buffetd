@@ -74,49 +74,49 @@
 // ---
 
 // Regular mode: cache a single key
-const url = buildURL(src.baseUrl, job.key, {})
-const res = await fetchWithRetry(
-  url,
-  { method: 'GET', headers: new Headers(src.defaultHeaders as Record<string, string>) },
-  { attempts: 2, baseDelayMs: 200, timeoutMs: 2500 },
-)
+// const url = buildURL(src.baseUrl, job.key, {})
+// const res = await fetchWithRetry(
+//   url,
+//   { method: 'GET', headers: new Headers(src.defaultHeaders as Record<string, string>) },
+//   { attempts: 2, baseDelayMs: 200, timeoutMs: 2500 },
+// )
 
-if (!res.ok) {
-  perSource[src.sid!].errors++
-  console.warn({ event: 'runner.origin_non_2xx', source_id: src.sid, key: job.key, status: res.status })
-  continue
-}
+// if (!res.ok) {
+//   perSource[src.sid!].errors++
+//   console.warn({ event: 'runner.origin_non_2xx', source_id: src.sid, key: job.key, status: res.status })
+//   continue
+// }
 
-const { data, encoding, contentType } = await pickDataAndEncoding(res)
-const etag = res.headers.get('etag')
-const lastMod = res.headers.get('last-modified')
+// const { data, encoding, contentType } = await pickDataAndEncoding(res)
+// const etag = res.headers.get('etag')
+// const lastMod = res.headers.get('last-modified')
 
-const entry: CacheEntry<Record<string, unknown>> = {
-  data,
-  metadata: {
-    source_id: src.sid!,
-    key: job.key,
-    cached_at: new Date().toISOString(), // Will be overwritten by setCacheEntry with the current time
-    expires_at: computeExpiresAt(ttl_s),
-    stale: false, // Will be recomputed by setCacheEntry
-    ttl_s,
-    etag: etag ?? null,
-    last_modified: lastMod ?? null,
-    origin_status: res.status,
-    content_type: contentType ?? null,
-    data_encoding: encoding,
-  },
-}
-await setCacheEntry(src.sid!, job.key, entry, { ttl_s })
+// const entry: CacheEntry<Record<string, unknown>> = {
+//   data,
+//   metadata: {
+//     source_id: src.sid!,
+//     key: job.key,
+//     cached_at: new Date().toISOString(), // Will be overwritten by setCacheEntry with the current time
+//     expires_at: computeExpiresAt(ttl_s),
+//     stale: false, // Will be recomputed by setCacheEntry
+//     ttl_s,
+//     etag: etag ?? null,
+//     last_modified: lastMod ?? null,
+//     origin_status: res.status,
+//     content_type: contentType ?? null,
+//     data_encoding: encoding,
+//   },
+// }
+// await setCacheEntry(src.sid!, job.key, entry, { ttl_s })
 
-perSource[src.sid!].updated++
+// perSource[src.sid!].updated++
 
-console.info({
-  event: 'runner.cache_updated',
-  source_id: src.sid,
-  key: job.key,
-  status: res.status,
-  ttl_s: src.cacheTTL,
-  content_type: contentType,
-  encoding,
-})
+// console.info({
+//   event: 'runner.cache_updated',
+//   source_id: src.sid,
+//   key: job.key,
+//   status: res.status,
+//   ttl_s: src.cacheTTL,
+//   content_type: contentType,
+//   encoding,
+// })

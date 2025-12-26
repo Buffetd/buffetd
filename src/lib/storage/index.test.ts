@@ -1,6 +1,7 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest'
 
 import { getPayload } from 'payload'
+import type { Payload } from 'payload'
 import type { Entry } from '@/payload-types'
 import type { PureEntry } from '@/types'
 
@@ -27,6 +28,12 @@ vi.mock('./persistLayer', () => ({
   delPersistEntry: vi.fn(),
 }))
 
+function mockPayloadWithSources(docs: Array<{ name: string }>) {
+  return {
+    find: vi.fn().mockResolvedValue({ docs }),
+  } as unknown as Payload
+}
+
 describe('storage layer', () => {
   const getPayloadMock = vi.mocked(getPayload)
 
@@ -43,9 +50,7 @@ describe('storage layer', () => {
   })
 
   it('getEntry returns null when source does not exist', async () => {
-    getPayloadMock.mockResolvedValueOnce({
-      find: vi.fn().mockResolvedValue({ docs: [] }),
-    } as any)
+    getPayloadMock.mockResolvedValueOnce(mockPayloadWithSources([]))
 
     await expect(getEntry('missing', '/a')).resolves.toBeNull()
 
@@ -54,9 +59,7 @@ describe('storage layer', () => {
   })
 
   it('getEntry returns memory entry if present', async () => {
-    getPayloadMock.mockResolvedValueOnce({
-      find: vi.fn().mockResolvedValue({ docs: [{ name: 's' }] }),
-    } as any)
+    getPayloadMock.mockResolvedValueOnce(mockPayloadWithSources([{ name: 's' }]))
 
     const entry = { source: 's', key: '/a' } as unknown as PureEntry
     getMemEntryMock.mockResolvedValueOnce(entry)
@@ -69,11 +72,9 @@ describe('storage layer', () => {
   })
 
   it('getEntry with fallback reads from persist and writes back to memory', async () => {
-    getPayloadMock.mockResolvedValueOnce({
-      find: vi.fn().mockResolvedValue({ docs: [{ name: 's' }] }),
-    } as any)
+    getPayloadMock.mockResolvedValueOnce(mockPayloadWithSources([{ name: 's' }]))
 
-    getMemEntryMock.mockResolvedValueOnce(null as any)
+    getMemEntryMock.mockResolvedValueOnce(null)
     const persistEntry = {
       id: 1,
       source: 's',
@@ -91,12 +92,10 @@ describe('storage layer', () => {
   })
 
   it('getEntry with fallback returns null when persist miss', async () => {
-    getPayloadMock.mockResolvedValueOnce({
-      find: vi.fn().mockResolvedValue({ docs: [{ name: 's' }] }),
-    } as any)
+    getPayloadMock.mockResolvedValueOnce(mockPayloadWithSources([{ name: 's' }]))
 
-    getMemEntryMock.mockResolvedValueOnce(null as any)
-    getPersistEntryMock.mockResolvedValueOnce(null as any)
+    getMemEntryMock.mockResolvedValueOnce(null)
+    getPersistEntryMock.mockResolvedValueOnce(null as unknown as Entry)
 
     await expect(getEntry('s', '/a', { fallback: true })).resolves.toBeNull()
 

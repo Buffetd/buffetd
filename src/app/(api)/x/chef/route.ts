@@ -24,8 +24,8 @@ async function handler(request: NextRequest): Promise<NextResponse<ChefResponse>
     return err(422, 'Missing sourceName')
   }
 
-  let qlen_before: number | null = null
-  let qlen_after_enqueue: number | null = null
+  const qlen_before: number | null = null
+  const qlen_after_enqueue: number | null = null
   let qlen_after_run: number | null = null
 
   const runOpts = {

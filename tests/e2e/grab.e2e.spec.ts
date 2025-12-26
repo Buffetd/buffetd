@@ -8,13 +8,8 @@ test.describe('API', () => {
     page = await context.newPage()
   })
 
-  test('create entry with grab api', async ({ page }) => {
-    await page.goto('http://localhost:3000')
-
-    await expect(page).toHaveTitle(/Payload Website Template/)
-
-    const heading = page.locator('h1').first()
-
-    await expect(heading).toHaveText('Payload Website Template')
+  test('Fetch Source', async ({ request }) => {
+    const response = await request.get('/api/sources')
+    expect(response.ok()).toBeTruthy()
   })
 })

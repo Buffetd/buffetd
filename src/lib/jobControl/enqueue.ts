@@ -36,7 +36,7 @@ async function enqueueTask(job: Job<FetchSourceEntryJobArgs>): Promise<EnqueueRe
   // if (job.jobType === 'memory') {
   //   return enqueueMemoryTask<A>(job)
   // }
-  job.jobName
+  // job.jobName
   enqueuePayloadJob(job)
   return enqueueMemoryJob(job)
 }

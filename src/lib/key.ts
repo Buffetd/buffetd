@@ -1,10 +1,14 @@
 import { createHash } from 'node:crypto'
 
-function get(obj: any, path: string): any {
-  return path.split('.').reduce((acc: any, k: string) => (acc == null ? undefined : acc[k]), obj)
+function get(obj: Record<string, unknown>, path: string): unknown {
+  return path.split('.').reduce<unknown>((acc, k: string) => {
+    if (acc == null) return undefined
+    if (typeof acc !== 'object') return undefined
+    return (acc as Record<string, unknown>)[k]
+  }, obj)
 }
 
-export function templateKey(template: string, params: Record<string, any>): string {
+export function templateKey(template: string, params: Record<string, string>): string {
   const s = template.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_m, p1) => {
     const v = get(params, p1)
     return v == null ? '' : String(v)
