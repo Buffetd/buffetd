@@ -1,3 +1,52 @@
+# Buffetd
+
+## Setup
+
+**Development**:
+1. Start the dependence containers
+```bash
+docker compose -f docker/development/compose.yml up -d
+```
+2. Install dependencies and start the development server
+```bash
+pnpm install && pnpm dev
+```
+**Testing**:
+
+**Staging**:
+1. Start the dependence containers
+```bash
+docker compose -f docker/staging/compose.yml up -d
+```
+2. Install dependencies and build the application
+```bash
+pnpm install && pnpm build
+```
+3. Run database migrations
+```bash
+pnpm run migrate
+```
+4. Start the application
+```bash
+pnpm preview
+```
+
+**Production**:
+1. Start the dependence containers
+```bash
+docker compose -f docker/production/compose.yml up -d postgres redis serverless-redis-http mailhog
+```
+2. Run migration
+```bash
+docker compose -f docker/production/compose.yml run --rm migrator
+```
+3. Start the application
+```bash
+docker compose -f docker/production/compose.yml up -d payload
+```
+
+---
+
 # Payload Website Template
 
 This is the official [Payload Website Template](https://github.com/payloadcms/payload/blob/main/templates/website). Use it to power websites, blogs, or portfolios from small to enterprise. This repo includes a fully-working backend, enterprise-grade admin panel, and a beautifully designed, production-ready website.
