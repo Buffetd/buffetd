@@ -1,0 +1,38 @@
+name: buffetd-staging
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - '5632:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  serverless-redis-http:
+    image: hiett/serverless-redis-http:latest
+    ports:
+      - '11080:80'
+    environment:
+      SRH_MODE: env
+      SRH_TOKEN: ${SRH_TOKEN}
+      SRH_CONNECTION_STRING: 'redis://redis:6379'
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6579:6379'
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+
+volumes:
+  postgres_data:
