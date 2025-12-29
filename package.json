@@ -6,8 +6,10 @@
   "type": "module",
   "scripts": {
     "build": "cross-env NODE_OPTIONS=--no-deprecation next build --experimental-build-mode compile",
+    "build:staging": "dotenvx run -f .env.staging.local -- cross-env NODE_OPTIONS=--no-deprecation next build --experimental-build-mode compile",
     "postbuild": "next-sitemap --config next-sitemap.config.cjs",
     "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
+    "dev:local": "dotenvx run -f .env.local -- cross-env NODE_OPTIONS=--no-deprecation next dev",
     "dev:prod": "cross-env NODE_OPTIONS=--no-deprecation rm -rf .next && pnpm build && pnpm start",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
@@ -63,6 +65,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@dotenvx/dotenvx": "^1.51.2",
     "@eslint/eslintrc": "^3.2.0",
     "@playwright/test": "1.54.1",
     "@tailwindcss/typography": "^0.5.13",
