@@ -1,28 +1,11 @@
-import { type NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
-import config from '@payload-config'
+import { NextResponse } from 'next/server'
 
-const payload = await getPayload({ config })
-
-export const GET = async (): Promise<NextResponse> => {
-  await payload.jobs.queue({
-    task: 'tFetchSourceEntry',
-    input: {
-      sourceName: 'hitokoto',
-      key: '/?c=b',
-      method: 'GET',
-    },
+export const GET = (): NextResponse => {
+  return NextResponse.json({
+    message: 'Enjoy your meal from buffetd API! 🍽️',
+    timestamp: new Date().toISOString(),
+    version: '0.1.0',
+    environment: process.env.NODE_ENV || 'development',
+    uptime: process.uptime().toFixed(2),
   })
-  return NextResponse.json({ message: 'Hello, this is the custom API root endpoint route' })
-}
-
-export const POST = async (request: NextRequest): Promise<NextResponse> => {
-  const body = await request.json()
-  await payload.sendEmail({
-    to: 'fake@zed.com',
-    subject: 'Welcome!',
-    text: `Hi zed, welcome to our platform! ${JSON.stringify(body)}`,
-  })
-  console.info({ event: 'x.route.post', body })
-  return NextResponse.json({ message: 'Hello, this is the custom API root endpoint route', body })
 }
