@@ -93,8 +93,8 @@ export default buildConfig({
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   email: nodemailerAdapter({
-    defaultFromAddress: 'info@payloadcms.com',
-    defaultFromName: 'Payload',
+    defaultFromAddress: 'buffetd@buffetd.com',
+    defaultFromName: 'Buffetd',
     // Nodemailer transportOptions
     transportOptions: {
       host: process.env.SMTP_HOST,
@@ -148,12 +148,16 @@ export default buildConfig({
   onInit: async () => {
     console.log('Payload started!')
 
-    const startTime = Date.now()
-    await redis.hset('buffetd:metrics', {
-      startedAt: startTime,
-      'cached:hit': 0,
-      'cached:miss': 0,
-      'cached:stale': 0,
-    })
+    try {
+      const startTime = Date.now()
+      await redis.hset('buffetd:metrics', {
+        startedAt: startTime,
+        'cached:hit': 0,
+        'cached:miss': 0,
+        'cached:stale': 0,
+      })
+    } catch (error) {
+      console.error(error)
+    }
   },
 })
