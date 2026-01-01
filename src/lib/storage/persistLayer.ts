@@ -10,7 +10,7 @@ export async function getPersistEntry(source: string, key: string) {
     collection: 'entries',
     where: { source: { equals: source }, key: { equals: key } },
   })
-  return res.docs[0]
+  return res.docs
 }
 
 export async function setPersistEntry(entry: PureEntry) {

@@ -38,10 +38,16 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
       console.log('after')
       await updateCacheMetrics({ hit: true })
       console.log('after execute')
+      if (Array.isArray(entry) && entry.length < 9) {
+        console.log('Need to refill entry', entry.length)
+
+        await enqueueFetchSourceEntryTask(src.name!, key, method)
+      }
     })
     redis.hincrby('buffetd:metrics', 'cached:hit', 1)
     console.info({ event: 'proxy.hit', sourceName: src.name!, key })
-    return ok({ message: entry }, { 'X-Buffetd': `Proxy hit cache ${method} ${targetUrl}` })
+    const choice = Array.isArray(entry) && entry.length > 1 ? entry[Math.floor(Math.random() * entry.length)] : entry
+    return ok({ message: choice }, { 'X-Buffetd': `Proxy hit cache ${method} ${targetUrl}` })
   }
 
   const clientReqBody = method === 'POST' ? await request.json() : undefined
