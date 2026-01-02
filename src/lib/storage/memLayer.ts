@@ -1,15 +1,27 @@
 import type { PureEntry } from '@/types'
 import { redis } from '@/lib/redis'
-import { keyHash, normalizeKeyString, redisKeyCache } from '@/lib/key'
+import { keyHash, normalizeKeyString, redisKeyCache, redisKeyPool } from '@/lib/key'
+import { getPersistEntry, setPersistEntry, delPersistEntry } from './persistLayer'
 
 export async function getMemEntry(source: string, key: string, options?: { supportsPool?: boolean }) {
   const normalized = normalizeKeyString(key)
   const cacheKey = redisKeyCache(source, keyHash(normalized))
 
   if (options?.supportsPool) {
-    const poolKey = `pool:${cacheKey}`
+    const poolKey = redisKeyPool(source, keyHash(normalized))
+    console.log('poolKey:', poolKey)
     const poolEntries = await redis.lrange(poolKey, 0, 9)
+    console.log('pool lookup:', { poolKey, poolEntriesLength: poolEntries.length })
     if (poolEntries.length > 0) {
+      if (poolEntries.length <= 1) {
+        const entries = await getPersistEntry(source, key, 10)
+        console.log('Refreshing pool entry from persist layer', entries.length, entries)
+        if (entries.length > 0) {
+          // Refresh the pool with fresh data
+          await redis.del(poolKey)
+          await setMemEntry(source, key, entries, { ttlSec: 3600, supportsPool: true })
+        }
+      }
       return poolEntries as unknown as PureEntry[]
     }
     return null
@@ -32,7 +44,22 @@ export async function setMemEntry(source: string, key: string, entry: PureEntry 
   // For pool entries, we might want to store them differently
   if (supportsPool && Array.isArray(entry)) {
     // Handle pool entries separately if needed
-    return await redis.lpush(`pool:${cacheKey}`, JSON.stringify(entry))
+    const poolKey = redisKeyPool(source, keyHash(normalized))
+    const ttl = options?.ttlSec ?? 60
+
+    // Clear existing pool entries and add new ones
+    await redis.del(poolKey)
+
+    // Push all entries at once
+    const stringEntries = entry.map((e) => JSON.stringify(e))
+    await redis.rpush(poolKey, ...stringEntries)
+
+    // Set TTL on the pool key
+    if (ttl > 0) {
+      await redis.expire(poolKey, ttl)
+    }
+
+    return entry.length
   }
 
   const ttl = options?.ttlSec ?? (Array.isArray(entry) ? 60 : entry.meta?.ttlS) ?? 60

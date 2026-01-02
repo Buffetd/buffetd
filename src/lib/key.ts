@@ -1,5 +1,29 @@
 import { createHash } from 'node:crypto'
 
+type CacheType = 'cache' | 'pool' | 'dedup' | 'idemp' | 'hot' | 'hotcd' | 'queue' | 'task'
+function getKeyPrefix(type: CacheType) {
+  switch (type) {
+    case 'cache':
+      return 'buffetd:cache'
+    case 'pool':
+      return 'buffetd:pool'
+    case 'dedup':
+      return 'buffetd:dedup'
+    case 'idemp':
+      return 'buffetd:idemp'
+    case 'hot':
+      return 'buffetd:hot'
+    case 'hotcd':
+      return 'buffetd:hotcd'
+    case 'queue':
+      return 'buffetd:queue'
+    case 'task':
+      return 'buffetd:task'
+    default:
+      return 'buffetd'
+  }
+}
+
 function get(obj: Record<string, unknown>, path: string): unknown {
   return path.split('.').reduce<unknown>((acc, k: string) => {
     if (acc == null) return undefined
@@ -67,6 +91,10 @@ export function redisQueueKey(name: string) {
 
 export function redisTaskKey(name: string) {
   return `buffetd:task:${name}`
+}
+
+export function redisKeyPool(name: string, hash: string) {
+  return `buffetd:pool:${name}:${hash}`
 }
 
 // Pool keys for list/pool support

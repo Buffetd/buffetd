@@ -1,6 +1,7 @@
 import type { TaskConfig, TypedJobs, TaskHandler, Field } from 'payload'
 
 // import { executeJob } from '@/lib/jobControl/executeJob'
+import { fetchTargetWithSource } from '@/lib/jobControl/sourceFetch'
 
 export type TaskKeys = keyof TypedJobs['tasks']
 
@@ -20,7 +21,38 @@ export function createTask<N extends TaskKeys>(name: N, input: string[], handler
 export const createFetchSourceEntryTask = (): TaskConfig<'tFetchSourceEntry'> => {
   const fields = ['sourceName|text|required', 'key|text|required', 'method|text|required']
 
-  return createTask('tFetchSourceEntry', fields, async ({}) => {
+  return createTask('tFetchSourceEntry', fields, async ({ input, req }) => {
+    const entry = await fetchTargetWithSource(input.sourceName, input.key, { method: input.method })
+    console.log('Fetched entry:', entry)
+
+    const sourceResult = await req.payload.find({
+      collection: 'sources',
+      where: {
+        name: { equals: input.sourceName },
+      },
+    })
+
+    const source = sourceResult.docs[0]
+    if (!source) {
+      throw new Error(`Source "${input.sourceName}" not found`)
+    }
+
+    await req.payload.create({
+      collection: 'entries',
+      data: {
+        source: input.sourceName,
+        key: input.key,
+        meta: {
+          sourceId: source.id,
+          ttlS: source.cacheTTL ?? 3600,
+          originStatus: 200,
+          dataEncoding: 'json' as const,
+          cachedAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + (source.cacheTTL ?? 3600) * 1000).toISOString(),
+        },
+        value: entry.value,
+      },
+    })
     return {
       output: { executed: true },
     }

@@ -3,11 +3,12 @@ import config from '@payload-config'
 
 import type { PureEntry } from '@/types'
 
-export async function getPersistEntry(source: string, key: string) {
+export async function getPersistEntry(source: string, key: string, limit = 0) {
   const payload = await getPayload({ config })
 
   const res = await payload.find({
     collection: 'entries',
+    ...(limit > 0 ? { limit } : {}),
     where: { source: { equals: source }, key: { equals: key } },
   })
   return res.docs

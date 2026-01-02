@@ -129,7 +129,7 @@ export default buildConfig({
     tasks: [createSaveEntryTask(), createExecuteJobTask(), createFetchSourceEntryTask(), createSendEmailTask()],
     autoRun: [
       {
-        cron: '*/10 * * * *',
+        cron: '* * * * *',
       },
     ],
   },
