@@ -46,6 +46,7 @@ async function handler(request: NextRequest, method: ValidMethod): Promise<Respo
     })
     redis.hincrby('buffetd:metrics', 'cached:hit', 1)
     console.info({ event: 'proxy.hit', sourceName: src.name!, key })
+    console.info({ entryLength: Array.isArray(entry) ? entry.length : 1 })
     const choice = Array.isArray(entry) && entry.length > 1 ? entry[Math.floor(Math.random() * entry.length)] : entry
     return ok({ message: choice }, { 'X-Buffetd': `Proxy hit cache ${method} ${targetUrl}` })
   }
