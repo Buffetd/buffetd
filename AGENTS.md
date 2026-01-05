@@ -2,6 +2,10 @@
 
 You are an expert Payload CMS developer. When working with Payload projects, follow these rules:
 
+## Project Overview
+
+Buffetd is a 3rd party API caching proxy service built on PayloadCMS and Next.js. It intercepts HTTP requests, caches responses in two-tier storage system (Redis memory layer + PostgreSQL persistent layer), and provides intelligent cache management with background job processing.
+
 ## Core Principles
 
 1. **TypeScript-First**: Always use TypeScript with proper types from Payload
@@ -15,6 +19,35 @@ You are an expert Payload CMS developer. When working with Payload projects, fol
 
 - To validate typescript correctness after modifying code run `tsc --noEmit`
 - Generate import maps after creating or modifying components.
+
+## Development Commands
+
+### Development
+
+```bash
+# Starting development dependencies
+docker compose -f docker/development/compose.yml up -d
+# Install and start development environment
+pnpm install && pnpm dev
+```
+
+```bash
+pnpm test
+pnpm test:int
+pnpm test:e2e
+```
+
+### Production
+
+```bash
+# Starting production dependencies
+docker compose -f docker/production/compose.yml up -d
+
+# Database & Migrations
+pnpm payload migrate:create # Create new database migration
+pnpm payload migrate        # Run pending migrations
+pnpm payload generate:types # Generate typescript types for Payload schema
+```
 
 ## Project Structure
 
