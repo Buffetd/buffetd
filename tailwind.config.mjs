@@ -4,14 +4,12 @@ import daisyui from 'daisyui'
 
 /** @type {import('tailwindcss').Config} */
 const config = {
-  content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
-  ],
+  content: ['./pages/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './app/**/*.{ts,tsx}', './src/**/*.{ts,tsx}'],
   darkMode: ['selector', '[data-theme="dark"]'],
   plugins: [tailwindcssAnimate, typography, daisyui],
+  daisyui: {
+    base: false, // fix home hero image background display
+  },
   prefix: '',
   safelist: [
     'lg:col-span-4',
