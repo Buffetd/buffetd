@@ -31,3 +31,5 @@ secrets
 
 # Graph
 *.drawio.bkp
+
+.local
