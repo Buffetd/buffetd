@@ -11,7 +11,7 @@ const nextConfig = {
   output: 'standalone',
   images: {
     remotePatterns: [
-      ...[NEXT_PUBLIC_SERVER_URL /* 'https://example.com' */].map((item) => {
+      ...['http://127.0.0.1:3000', NEXT_PUBLIC_SERVER_URL /* 'https://example.com' */].map((item) => {
         const url = new URL(item)
 
         return {
@@ -32,6 +32,7 @@ const nextConfig = {
   },
   reactStrictMode: true,
   redirects,
+  allowedDevOrigins: [NEXT_PUBLIC_SERVER_URL, '127.0.0.1', '127.0.0.1:3000', 'localhost:3000'],
 }
 
 export default withPayload(nextConfig, { devBundleServerPackages: false })
