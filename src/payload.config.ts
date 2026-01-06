@@ -1,6 +1,7 @@
 // storage-adapter-import-placeholder
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
+import { s3Storage } from '@payloadcms/storage-s3'
 
 import sharp from 'sharp' // sharp-import
 import path from 'path'
@@ -28,6 +29,38 @@ import { redis } from '@/lib/redis'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
+
+function requiredEnv(key: string): string {
+  const value = process.env[key]
+  if (!value) {
+    throw new Error(`Missing environment variable: ${key}`)
+  }
+  return value
+}
+
+const s3Bucket = process.env.S3_BUCKET
+const s3AccessKeyId = process.env.S3_ACCESS_KEY_ID
+const s3SecretAccessKey = process.env.S3_SECRET_ACCESS_KEY
+const s3Region = process.env.S3_REGION
+const s3Endpoint = process.env.S3_ENDPOINT
+
+const s3Plugin =
+  s3Bucket && s3AccessKeyId && s3SecretAccessKey && s3Region
+    ? s3Storage({
+        collections: {
+          media: true,
+        },
+        bucket: s3Bucket,
+        config: {
+          credentials: {
+            accessKeyId: s3AccessKeyId,
+            secretAccessKey: s3SecretAccessKey,
+          },
+          region: s3Region,
+          endpoint: s3Endpoint,
+        },
+      })
+    : null
 
 export default buildConfig({
   admin: {
@@ -86,8 +119,9 @@ export default buildConfig({
   plugins: [
     ...plugins,
     // storage-adapter-placeholder
+    ...(s3Plugin ? [s3Plugin] : []),
   ],
-  secret: process.env.PAYLOAD_SECRET,
+  secret: requiredEnv('PAYLOAD_SECRET'),
   sharp,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),

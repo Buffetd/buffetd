@@ -13,7 +13,7 @@ const entryInputSchema = z.object({
   meta: entryMetadataSchema,
   value: z.record(z.string(), z.any()),
 })
-const entryInputJSONSchema = z.toJSONSchema(entryInputSchema)
+const entryInputJSONSchema = JSON.parse(JSON.stringify(z.toJSONSchema(entryInputSchema)))
 
 export const createSaveEntryTask = (): TaskConfig<'tSaveEntry'> => {
   return {

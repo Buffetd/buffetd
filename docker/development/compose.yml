@@ -12,6 +12,17 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
+  rustfs:
+    image: rustfs/rustfs:latest
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - rustfs_data:/data
+    environment:
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY}
+
   serverless-redis-http:
     image: hiett/serverless-redis-http:latest
     ports:
@@ -36,3 +47,4 @@ services:
 
 volumes:
   postgres_data:
+  rustfs_data:

@@ -21,7 +21,7 @@ export const entryMetadataSchema = z.object({
 })
 
 export type EntryMetadata = z.infer<typeof entryMetadataSchema>
-export const entryMetadataJSONSchema = z.toJSONSchema(entryMetadataSchema)
+export const entryMetadataJSONSchema = JSON.parse(JSON.stringify(z.toJSONSchema(entryMetadataSchema)))
 
 export const Entries: CollectionConfig = {
   slug: 'entries',
