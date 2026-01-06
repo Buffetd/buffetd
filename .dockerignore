@@ -4,6 +4,10 @@ out
 build
 .git
 .gitignore
+.env
+.env.*
+docker/**/.env
+docker/**/.env.*
 .vercel
 README.md
 docker-compose.yml

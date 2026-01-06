@@ -5,6 +5,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "build": "cross-env NODE_OPTIONS=--no-deprecation next build --experimental-build-mode compile",
     "build:prod": "dotenvx run -f .env.production.local -- cross-env NODE_OPTIONS=--no-deprecation next build --experimental-build-mode compile",
     "build:staging": "dotenvx run -f .env.staging.local -- cross-env NODE_OPTIONS=--no-deprecation next build --experimental-build-mode compile",
     "postbuild": "next-sitemap --config next-sitemap.config.cjs",

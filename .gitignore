@@ -26,6 +26,8 @@ node_modules/
 # env files
 .env.local
 .env*.local*
+docker/**/.env
+docker/**/.env.*
 
 # Secrets
 secrets
