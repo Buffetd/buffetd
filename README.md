@@ -32,9 +32,10 @@ pnpm preview
 ```
 
 **Production**:
-1. Start the dependence containers
+1. Build the application
 ```bash
-docker compose -f docker/production/compose.yml up -d postgres redis serverless-redis-http mailhog
+docker compose -f docker/production/compose.yml build app
+docker compose -f docker/production/compose.yml build migrator
 ```
 2. Run migration
 ```bash
@@ -42,7 +43,7 @@ docker compose -f docker/production/compose.yml run --rm migrator
 ```
 3. Start the application
 ```bash
-docker compose -f docker/production/compose.yml up -d payload
+docker compose -f docker/production/compose.yml up -d app
 ```
 
 ---
