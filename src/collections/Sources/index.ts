@@ -35,10 +35,14 @@ export const Sources: CollectionConfig = {
       name: 'baseUrl',
       type: 'text',
       required: true,
+      unique: true,
+      index: true,
     },
     {
       name: 'name',
       type: 'text',
+      unique: true,
+      index: true,
     },
     {
       name: 'description',
@@ -48,6 +52,10 @@ export const Sources: CollectionConfig = {
       name: 'keyTemplate',
       type: 'text',
       defaultValue: '/',
+    },
+    {
+      name: 'identityKey',
+      type: 'text',
     },
     {
       name: 'defaultHeaders',
@@ -62,24 +70,82 @@ export const Sources: CollectionConfig = {
         }
       },
     },
+    // {
+    //   name: 'rateLimit',
+    //   type: 'json',
+    //   defaultValue: {},
+    //   jsonSchema: {
+    //     uri: 'buffetd://sources/rateLimit.schema.json',
+    //     fileMatch: [],
+    //     schema: rateLimitJSONSchema as unknown as JSONSchema4,
+    //   },
+    //   validate: (value) => {
+    //     try {
+    //       rateLimitSchema.parse(value)
+    //       return true
+    //     } catch (error: unknown) {
+    //       return error instanceof z.ZodError ? error.message : 'Unknown error'
+    //     }
+    //   },
+    // },
     {
-      name: 'rateLimit',
-      type: 'json',
-      defaultValue: {},
-      jsonSchema: {
-        uri: 'buffetd://sources/rateLimit.schema.json',
-        fileMatch: [],
-        schema: rateLimitJSONSchema as unknown as JSONSchema4,
-      },
-      validate: (value) => {
-        try {
-          rateLimitSchema.parse(value)
-          return true
-        } catch (error: unknown) {
-          return error instanceof z.ZodError ? error.message : 'Unknown error'
-        }
-      },
+      label: 'Request Rate Limit',
+      type: 'collapsible',
+      fields: [
+        {
+          name: 'rateLimit',
+          type: 'group',
+          validate: (value) => {
+            if (!value || typeof value !== 'object') {
+              return 'At least one request rate limit must be specified'
+            }
+
+            const v = value as Record<string, unknown>
+
+            const hasAnyLimit = [
+              'requestPerSecond',
+              'requestPerMinute',
+              'requestPerHour',
+              'requestPerDay',
+              'requestPerMonth',
+            ].some((key) => {
+              const n = v[key]
+              return typeof n === 'number' && Number.isFinite(n) && n > 0
+            })
+
+            return hasAnyLimit || 'At least one request rate limit must be specified'
+          },
+          fields: [
+            {
+              name: 'requestPerSecond',
+              type: 'number',
+              min: 0,
+            },
+            {
+              name: 'requestPerMinute',
+              type: 'number',
+              min: 0,
+            },
+            {
+              name: 'requestPerHour',
+              type: 'number',
+              min: 1,
+            },
+            {
+              name: 'requestPerDay',
+              type: 'number',
+              min: 1,
+            },
+            {
+              name: 'requestPerMonth',
+              type: 'number',
+              min: 1,
+            },
+          ],
+        },
+      ],
     },
+
     {
       name: 'cacheTTL',
       type: 'number',

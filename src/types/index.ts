@@ -3,7 +3,7 @@ import { EntryMetadata } from '@/collections/Entries'
 
 type ExcludePayloadProps<T> = Omit<T, 'id' | 'updatedAt' | 'createdAt'>
 
-export type PureEntry = ExcludePayloadProps<Entry>
+export type PureEntry = Omit<ExcludePayloadProps<Entry>, 'identityValue'> & { identityValue?: string }
 
 export type PureSource = ExcludePayloadProps<Source>
 

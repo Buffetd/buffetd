@@ -797,6 +797,7 @@ export interface Source {
   name?: string | null;
   description?: string | null;
   keyTemplate?: string | null;
+  identityKey?: string | null;
   defaultHeaders?:
     | {
         [k: string]: unknown;
@@ -807,11 +808,11 @@ export interface Source {
     | boolean
     | null;
   rateLimit?: {
-    requestPerSecond?: number;
-    requestPerMinute?: number;
-    requestPerHour?: number;
-    requestPerDay?: number;
-    requestPerMonth?: number;
+    requestPerSecond?: number | null;
+    requestPerMinute?: number | null;
+    requestPerHour?: number | null;
+    requestPerDay?: number | null;
+    requestPerMonth?: number | null;
   };
   cacheTTL?: number | null;
   supportsPool?: boolean | null;
@@ -846,6 +847,7 @@ export interface Entry {
     | number
     | boolean
     | null;
+  identityValue: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -1441,8 +1443,17 @@ export interface SourcesSelect<T extends boolean = true> {
   name?: T;
   description?: T;
   keyTemplate?: T;
+  identityKey?: T;
   defaultHeaders?: T;
-  rateLimit?: T;
+  rateLimit?:
+    | T
+    | {
+        requestPerSecond?: T;
+        requestPerMinute?: T;
+        requestPerHour?: T;
+        requestPerDay?: T;
+        requestPerMonth?: T;
+      };
   cacheTTL?: T;
   supportsPool?: T;
   updatedAt?: T;
@@ -1457,6 +1468,7 @@ export interface EntriesSelect<T extends boolean = true> {
   key?: T;
   meta?: T;
   value?: T;
+  identityValue?: T;
   updatedAt?: T;
   createdAt?: T;
 }
