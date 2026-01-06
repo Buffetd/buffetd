@@ -66,7 +66,7 @@ describe('storage layer', () => {
 
     await expect(getEntry('s', '/a')).resolves.toBe(entry)
 
-    expect(getMemEntryMock).toHaveBeenCalledWith('s', '/a')
+    expect(getMemEntryMock).toHaveBeenCalledWith('s', '/a', { supportsPool: false })
     expect(getPersistEntryMock).not.toHaveBeenCalled()
     expect(setMemEntryMock).not.toHaveBeenCalled()
   })
@@ -83,19 +83,19 @@ describe('storage layer', () => {
       updatedAt: '2025-01-01T00:00:00.000Z',
     } as unknown as Entry
 
-    getPersistEntryMock.mockResolvedValueOnce(persistEntry)
+    getPersistEntryMock.mockResolvedValueOnce([persistEntry] as unknown as Entry[])
 
     await expect(getEntry('s', '/a', { fallback: true })).resolves.toBe(persistEntry)
 
-    expect(getPersistEntryMock).toHaveBeenCalledWith('s', '/a')
-    expect(setMemEntryMock).toHaveBeenCalledWith('s', '/a', persistEntry as unknown as PureEntry, 60)
+    expect(getPersistEntryMock).toHaveBeenCalledWith('s', '/a', 1)
+    expect(setMemEntryMock).toHaveBeenCalledWith('s', '/a', persistEntry as unknown as PureEntry, { ttlSec: 60 })
   })
 
   it('getEntry with fallback returns null when persist miss', async () => {
     getPayloadMock.mockResolvedValueOnce(mockPayloadWithSources([{ name: 's' }]))
 
     getMemEntryMock.mockResolvedValueOnce(null)
-    getPersistEntryMock.mockResolvedValueOnce(null as unknown as Entry)
+    getPersistEntryMock.mockResolvedValueOnce([] as unknown as Entry[])
 
     await expect(getEntry('s', '/a', { fallback: true })).resolves.toBeNull()
 
@@ -103,17 +103,19 @@ describe('storage layer', () => {
   })
 
   it('setEntry writes to memory and optionally persists', async () => {
+    getPayloadMock.mockResolvedValueOnce(mockPayloadWithSources([{ name: 's' }]))
     const entry = { source: 's', key: '/a' } as unknown as PureEntry
 
     await setEntry(entry)
-    expect(setMemEntryMock).toHaveBeenCalledWith('s', '/a', entry, undefined)
+    expect(setMemEntryMock).toHaveBeenCalledWith('s', '/a', entry, { ttlSec: undefined, supportsPool: false })
     expect(setPersistEntryMock).not.toHaveBeenCalled()
 
     vi.clearAllMocks()
 
+    getPayloadMock.mockResolvedValueOnce(mockPayloadWithSources([{ name: 's' }]))
     await setEntry(entry, { persist: true, ttlSec: 10 })
-    expect(setMemEntryMock).toHaveBeenCalledWith('s', '/a', entry, 10)
-    expect(setPersistEntryMock).toHaveBeenCalledWith(entry)
+    expect(setMemEntryMock).toHaveBeenCalledWith('s', '/a', entry, { ttlSec: 10, supportsPool: false })
+    expect(setPersistEntryMock).toHaveBeenCalledWith(entry, { supportsPool: false })
   })
 
   it('delEntry deletes from memory and optionally deletes persisted entry', async () => {

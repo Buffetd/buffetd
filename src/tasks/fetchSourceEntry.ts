@@ -37,22 +37,31 @@ export const createFetchSourceEntryTask = (): TaskConfig<'tFetchSourceEntry'> =>
       throw new Error(`Source "${input.sourceName}" not found`)
     }
 
-    await req.payload.create({
-      collection: 'entries',
-      data: {
-        source: input.sourceName,
-        key: input.key,
-        meta: {
-          sourceId: source.id,
-          ttlS: source.cacheTTL ?? 3600,
-          originStatus: 200,
-          dataEncoding: 'json' as const,
-          cachedAt: new Date().toISOString(),
-          expiresAt: new Date(Date.now() + (source.cacheTTL ?? 3600) * 1000).toISOString(),
+    try {
+      await req.payload.create({
+        collection: 'entries',
+        data: {
+          source: input.sourceName,
+          key: input.key,
+          identityValue: '',
+          meta: {
+            sourceId: source.id,
+            ttlS: source.cacheTTL ?? 3600,
+            originStatus: 200,
+            dataEncoding: 'json' as const,
+            cachedAt: new Date().toISOString(),
+            expiresAt: new Date(Date.now() + (source.cacheTTL ?? 3600) * 1000).toISOString(),
+          },
+          value: entry.value,
         },
-        value: entry.value,
-      },
-    })
+        draft: false,
+        // overrideAccess: false,
+        req,
+      })
+    } catch (e) {
+      console.error('Failed to create entry:', e)
+      throw e
+    }
     return {
       output: { executed: true },
     }

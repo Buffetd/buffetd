@@ -21,6 +21,11 @@ vi.mock('payload', () => {
       store.set(idFor(data.source, data.key), data)
       return data
     }),
+    update: vi.fn(async ({ id, data }: { id: string | number; data: { source: string; key: string } }) => {
+      // For tests, treat id as opaque and use (source,key) as the storage key
+      store.set(idFor(data.source, data.key), { ...data, id })
+      return { ...data, id }
+    }),
     delete: vi.fn(async ({ where }: { where: { source: { equals: string }; key: { equals: string } } }) => {
       const source = where.source.equals
       const key = where.key.equals
@@ -40,14 +45,15 @@ describe('persistLayer', () => {
   })
 
   it('getPersistEntry returns undefined when not found', async () => {
-    const entry = await getPersistEntry('source', 'key')
-    expect(entry).toBeUndefined()
+    const entries = await getPersistEntry('source', 'key')
+    expect(entries).toEqual([])
   })
 
   it('setPersistEntry + getPersistEntry', async () => {
     await setPersistEntry({
       source: 'source',
       key: 'key',
+      identityValue: 'source:key:nonpool',
       meta: {
         sourceId: 1,
         ttlS: 60,
@@ -59,15 +65,16 @@ describe('persistLayer', () => {
       value: 'value',
     })
 
-    const entry = await getPersistEntry('source', 'key')
-    expect(entry).toBeTruthy()
-    expect(entry?.value).toBe('value')
+    const entries = await getPersistEntry('source', 'key')
+    expect(entries.length).toBe(1)
+    expect((entries[0] as { value?: unknown })?.value).toBe('value')
   })
 
   it('delPersistEntry returns number of deleted docs', async () => {
     await setPersistEntry({
       source: 'source',
       key: 'key',
+      identityValue: 'source:key:nonpool',
       meta: {
         sourceId: 1,
         ttlS: 60,
@@ -82,7 +89,7 @@ describe('persistLayer', () => {
     const deleted = await delPersistEntry('source', 'key')
     expect(deleted).toBe(1)
 
-    const entry = await getPersistEntry('source', 'key')
-    expect(entry).toBeUndefined()
+    const entries = await getPersistEntry('source', 'key')
+    expect(entries).toEqual([])
   })
 })

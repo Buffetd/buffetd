@@ -31,6 +31,7 @@ describe('memLayer', () => {
     await setMemEntry('source', 'key', {
       source: 'test',
       key: '/',
+      identityValue: 'v1:test',
       meta: {
         sourceId: 1,
         ttlS: 60,
@@ -42,13 +43,14 @@ describe('memLayer', () => {
       value: 'value',
     })
     const entry = await getMemEntry('source', 'key')
-    expect(entry?.value).toBe('value')
+    expect(Array.isArray(entry) ? entry[0]?.value : entry?.value).toBe('value')
   })
 
   it('delMemEntry', async () => {
     await setMemEntry('source', 'key', {
       source: 'test',
       key: '/',
+      identityValue: 'v1:test',
       meta: {
         sourceId: 1,
         ttlS: 60,

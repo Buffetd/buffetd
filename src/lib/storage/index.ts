@@ -17,14 +17,12 @@ export async function getEntry(source: string, key: string, options?: { fallback
   if (entry) return entry
 
   if (options?.fallback) {
-    const entries = await getPersistEntry(source, key)
+    const entries = await getPersistEntry(source, key, src.supportsPool ? 10 : 1)
     if (entries.length) {
       // Write to memory layer
       if (src.supportsPool) {
         await setMemEntry(source, key, entries, { ttlSec: 60, supportsPool: true })
-        // Random choice from pool
-        const randomIndex = Math.floor(Math.random() * entries.length)
-        return entries[randomIndex]
+        return entries
       }
       await setMemEntry(source, key, entries[0], { ttlSec: 60 })
       return entries[0]
@@ -39,8 +37,17 @@ export async function setEntry(
   entry: PureEntry,
   options?: { persist?: boolean; ttlSec?: number; supportsPool?: boolean },
 ) {
-  await setMemEntry(entry.source, entry.key, entry, { ttlSec: options?.ttlSec, supportsPool: options?.supportsPool })
-  if (options?.persist) await setPersistEntry(entry)
+  let supportsPool = options?.supportsPool
+
+  if (supportsPool == null) {
+    const payload = await getPayload({ config })
+    const sources = await payload.find({ collection: 'sources', where: { name: { equals: entry.source } }, limit: 1 })
+    supportsPool = Boolean(sources.docs[0]?.supportsPool)
+  }
+
+  supportsPool = Boolean(supportsPool)
+  await setMemEntry(entry.source, entry.key, entry, { ttlSec: options?.ttlSec, supportsPool })
+  if (options?.persist) await setPersistEntry(entry, { supportsPool })
 }
 
 export async function delEntry(source: string, key: string, options?: { pure?: boolean }) {

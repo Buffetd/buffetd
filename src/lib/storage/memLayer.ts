@@ -1,7 +1,7 @@
 import type { PureEntry } from '@/types'
 import { redis } from '@/lib/redis'
 import { keyHash, normalizeKeyString, redisKeyCache, redisKeyPool } from '@/lib/key'
-import { getPersistEntry, setPersistEntry, delPersistEntry } from './persistLayer'
+import { getPersistEntry } from './persistLayer'
 
 export async function getMemEntry(source: string, key: string, options?: { supportsPool?: boolean }) {
   const normalized = normalizeKeyString(key)
@@ -20,9 +20,22 @@ export async function getMemEntry(source: string, key: string, options?: { suppo
           // Refresh the pool with fresh data
           await redis.del(poolKey)
           await setMemEntry(source, key, entries, { ttlSec: 3600, supportsPool: true })
+          return entries as unknown as PureEntry[]
         }
       }
-      return poolEntries as unknown as PureEntry[]
+
+      const parsed = poolEntries
+        .map((e) => {
+          if (typeof e !== 'string') return null
+          try {
+            return JSON.parse(e) as PureEntry
+          } catch {
+            return null
+          }
+        })
+        .filter(Boolean) as PureEntry[]
+
+      return parsed.length ? parsed : null
     }
     return null
   }
@@ -60,6 +73,20 @@ export async function setMemEntry(source: string, key: string, entry: PureEntry 
     }
 
     return entry.length
+  }
+
+  if (supportsPool && !Array.isArray(entry)) {
+    const poolKey = redisKeyPool(source, keyHash(normalized))
+    const ttl = options?.ttlSec ?? entry.meta?.ttlS ?? 60
+
+    await redis.lpush(poolKey, JSON.stringify(entry))
+    await redis.ltrim(poolKey, 0, 9)
+
+    if (ttl > 0) {
+      await redis.expire(poolKey, ttl)
+    }
+
+    return 1
   }
 
   const ttl = options?.ttlSec ?? (Array.isArray(entry) ? 60 : entry.meta?.ttlS) ?? 60

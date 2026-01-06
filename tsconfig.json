@@ -39,6 +39,7 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    ".local/**/*.ts", // Debug only
     ".next/types/**/*.ts",
     "redirects.js",
     "next-env.d.ts",

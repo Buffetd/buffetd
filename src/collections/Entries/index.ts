@@ -56,6 +56,10 @@ export const Entries: CollectionConfig = {
         const supportsPool = Boolean(src?.supportsPool)
         const identityKey = typeof src?.identityKey === 'string' ? src.identityKey : null
 
+        console.log('='.repeat(30))
+        console.log('identityKey:', identityKey)
+        console.log('='.repeat(30))
+
         let variant = ''
         if (supportsPool) {
           const parsed = parseValueForIdentity(value, meta)
@@ -73,6 +77,10 @@ export const Entries: CollectionConfig = {
             variant = `body:${keyHash(stableStringify(parsed))}`
           }
         }
+
+        console.log('='.repeat(30))
+        console.log('variant:', variant)
+        console.log('='.repeat(30))
 
         const identitySeed = supportsPool ? `${source}|${normalizedKey}|${variant}` : `${source}|${normalizedKey}`
         ;(data as { identityValue?: string }).identityValue = `v1:${keyHash(identitySeed)}`
