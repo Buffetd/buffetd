@@ -13,12 +13,22 @@ export const getMediaUrl = (url: string | null | undefined, cacheTag?: string | 
     cacheTag = encodeURIComponent(cacheTag)
   }
 
+  const appendCacheTag = (inputURL: string): string => {
+    if (!cacheTag) return inputURL
+    const joiner = inputURL.includes('?') ? '&' : '?'
+    return `${inputURL}${joiner}${cacheTag}`
+  }
+
   // Check if URL already has http/https protocol
   if (url.startsWith('http://') || url.startsWith('https://')) {
-    return cacheTag ? `${url}?${cacheTag}` : url
+    return appendCacheTag(url)
+  }
+
+  if (url.startsWith('/')) {
+    return appendCacheTag(url)
   }
 
   // Otherwise prepend client-side URL
   const baseUrl = getClientSideURL()
-  return cacheTag ? `${baseUrl}${url}?${cacheTag}` : `${baseUrl}${url}`
+  return appendCacheTag(`${baseUrl}${url}`)
 }
