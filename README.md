@@ -1,5 +1,9 @@
 # Buffetd
 
+## Overview
+
+Buffetd is a 3rd party API proxy service let you enjoy the data like eating buffet.
+
 ## Setup
 
 **Development**:
@@ -7,7 +11,16 @@
 ```bash
 docker compose -f docker/development/compose.yml up -d
 ```
-2. Install dependencies and start the development server
+2. Create S3 bucket
+```bash
+# Create on UI by visiting http://127.0.0.1:9000
+# Or
+# Create by mc command
+brew install minio/stable/mc
+mc alias set rustfs http://127.0.0.1:9000 ACCESS_KEY SECRET_KEY
+mc mb rustfs/buffetd
+```
+3. Install dependencies and start the development server
 ```bash
 pnpm install && pnpm dev
 ```
