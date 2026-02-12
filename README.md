@@ -13,7 +13,7 @@ docker compose -f docker/development/compose.yml up -d
 ```
 2. Create S3 bucket
 ```bash
-# Create on UI by visiting http://127.0.0.1:9000
+# Create on UI by visiting http://127.0.0.1:9001
 # Or
 # Create by mc command
 brew install minio/stable/mc
