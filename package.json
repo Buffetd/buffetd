@@ -11,7 +11,7 @@
     "postbuild": "next-sitemap --config next-sitemap.config.cjs",
     "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
     "dev:test": "dotenvx run -f .env.test.local -f .env.test -- cross-env NODE_OPTIONS=--no-deprecation APP_ENV=test next dev",
-    "dev:prod": "cross-env NODE_OPTIONS=--no-deprecation rm -rf .next && pnpm build && pnpm start",
+    "dev:prod": "cross-env NODE_OPTIONS=--no-deprecation rm -rf .next && pnpm build:prod && pnpm preview:prepare && pnpm preview",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "ii": "cross-env NODE_OPTIONS=--no-deprecation pnpm --ignore-workspace install",
@@ -61,7 +61,7 @@
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "react-hook-form": "7.45.4",
-    "sharp": "0.34.2",
+    "sharp": "0.34.5",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^4.1.12"
